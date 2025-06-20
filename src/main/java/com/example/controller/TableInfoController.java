@@ -1,6 +1,8 @@
 package com.example.controller;
 
 import com.example.model.TableInfo;
+import com.example.model.TableColumn;
+import com.example.model.TableInfoWithColumns;
 import com.example.service.TableInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,5 +21,10 @@ public class TableInfoController {
     @GetMapping("/info")
     public List<TableInfo> getTableInfo() {
         return tableInfoService.getTableInfo();
+    }
+
+    @GetMapping("/columns")
+    public List<TableInfoWithColumns> getAllTableColumns() {
+        return tableInfoService.getAllTableColumns();
     }
 } 
