@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.dto.UserDTO;
+import com.example.entity.Menu;
 import com.example.service.UserService;
 import com.example.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -164,7 +165,7 @@ public class UserController {
             String username = authentication.getName();
             UserDTO user = userService.getUserByUsername(username);
             
-            List<String> menus = userService.getUserMenus(user.getRole());
+            List<Menu> menus = userService.getUserMenus(user.getRole());
             return ResponseEntity.ok(createSuccessResponse("查询成功", menus));
         } catch (Exception e) {
             log.error("获取用户菜单失败: {}", e.getMessage());

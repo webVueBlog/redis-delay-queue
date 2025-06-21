@@ -2,6 +2,7 @@ package com.example.service;
 
 import com.example.dto.UserDTO;
 import com.example.entity.User;
+import com.example.entity.Menu;
 import com.example.repository.UserRepository;
 import com.example.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,8 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final MenuService menuService;
+    private final OrganizationService organizationService;
     
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -65,7 +68,7 @@ public class UserService implements UserDetailsService {
         String token = jwtUtil.generateToken(user, claims);
         
         // 获取用户菜单
-        List<String> menus = getUserMenus(user.getRole());
+        List<Menu> menus = getUserMenus(user.getRole());
         
         return new UserDTO.LoginResponse(token, "Bearer", convertToDTO(user), menus);
     }
@@ -208,24 +211,8 @@ public class UserService implements UserDetailsService {
     /**
      * 获取用户菜单
      */
-    public List<String> getUserMenus(String role) {
-        List<String> menus = new ArrayList<>();
-        
-        // 基础菜单
-        menus.add("dashboard");
-        menus.add("profile");
-        
-        // 根据角色添加菜单
-        if ("ADMIN".equals(role)) {
-            menus.add("user-management");
-            menus.add("system-settings");
-            menus.add("health-check");
-            menus.add("table-viewer");
-        } else if ("USER".equals(role)) {
-            menus.add("table-viewer");
-        }
-        
-        return menus;
+    public List<Menu> getUserMenus(String role) {
+        return menuService.getUserMenuTree(role);
     }
     
     /**
@@ -235,7 +222,19 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         
-        return user.getOrganizationIdList();
+        List<Long> orgIds = user.getOrganizationIdList();
+        if (orgIds == null || orgIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 获取用户组织及其所有子组织的ID
+        List<Long> allOrgIds = new ArrayList<>();
+        for (Long orgId : orgIds) {
+            allOrgIds.add(orgId);
+            allOrgIds.addAll(organizationService.getAllChildOrganizationIds(orgId));
+        }
+        
+        return allOrgIds;
     }
     
     /**

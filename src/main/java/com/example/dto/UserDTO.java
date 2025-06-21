@@ -1,5 +1,6 @@
 package com.example.dto;
 
+import com.example.entity.Menu;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -133,7 +134,7 @@ public class UserDTO {
         private String token;
         private String tokenType = "Bearer";
         private UserDTO user;
-        private List<String> menus;
+        private List<Menu> menus;
     }
     
     // 分页响应DTO
