@@ -46,7 +46,9 @@ public class UserService implements UserDetailsService {
     public UserDTO.LoginResponse login(UserDTO.LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("用户名或密码错误"));
-        
+        //打印日志返回的user所有
+        log.info("用户登录: {}", user);
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("用户名或密码错误");
         }
@@ -63,7 +65,7 @@ public class UserService implements UserDetailsService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
         claims.put("role", user.getRole());
-        claims.put("organizationIds", user.getOrganizationIds());
+        claims.put("organizationIds", user.getOrganizationIdList());
         
         String token = jwtUtil.generateToken(user, claims);
         

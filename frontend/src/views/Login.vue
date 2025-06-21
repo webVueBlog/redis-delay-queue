@@ -149,13 +149,18 @@ const handleLogin = async () => {
     const response = await request.post('/api/auth/login', loginForm)
     
     if (response.data.success) {
-      const { token, user } = response.data.data
+      const { token, user, menus } = response.data.data
       
       // 保存登录信息
       localStorage.setItem('token', token)
       localStorage.setItem('userRole', user.role)
       localStorage.setItem('userId', user.id)
       localStorage.setItem('username', user.username)
+      
+      // 保存菜单信息（如果需要的话）
+      if (menus) {
+        localStorage.setItem('userMenus', JSON.stringify(menus))
+      }
       
       // 设置request默认header
       request.defaults.headers.common['Authorization'] = `Bearer ${token}`

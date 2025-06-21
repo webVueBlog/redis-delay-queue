@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS users (
     last_login_time TIMESTAMP NULL COMMENT '最后登录时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
--- 插入默认管理员用户（密码：admin123）
+-- 插入默认管理员用户（密码：123456aaa）
 INSERT IGNORE INTO users (username, email, password, role, status) VALUES 
-('admin', 'admin@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBaLO.oj2R6YzO', 'ADMIN', 1);
+('admin', 'admin@example.com', '$2a$10$8K1p/wf4ttxyF.KNFX6lCeKHrb8tOiIpOFp6RXr2V8jMfLOjKq.Lm', 'ADMIN', 1);
 
 -- 插入测试用户（密码：user123）
 INSERT IGNORE INTO users (username, email, password, role, status, organization_ids) VALUES 

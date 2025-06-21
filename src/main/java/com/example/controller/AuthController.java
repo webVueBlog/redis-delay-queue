@@ -29,7 +29,7 @@ public class AuthController {
         try {
             UserDTO.LoginResponse response = userService.login(request);
             log.info("用户登录成功: {}", request.getUsername());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(createSuccessResponse("登录成功", response));
         } catch (Exception e) {
             log.error("用户登录失败: {}, 错误: {}", request.getUsername(), e.getMessage());
             return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));

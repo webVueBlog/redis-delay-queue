@@ -153,7 +153,7 @@
         </el-card>
       </el-col>
       
-      <el-col :span="isAdmin ? 6 : 12">
+      <el-col :span="isAdmin ? 6 : 12" class="stats-row">
         <el-card class="stat-card" @click="$router.push('/my-tasks')">
           <div class="stat-content">
             <el-icon class="stat-icon"><DataBoard /></el-icon>
@@ -165,7 +165,7 @@
         </el-card>
       </el-col>
       
-      <el-col :span="6" v-if="!isAdmin">
+      <el-col :span="isAdmin ? 6 : 12" v-if="!isAdmin" class="stats-row">
         <el-card class="stat-card" @click="$router.push('/user-permission-organizations')">
           <div class="stat-content">
             <el-icon class="stat-icon"><OfficeBuilding /></el-icon>
@@ -178,7 +178,7 @@
       </el-col>
       
       <!-- 管理功能区域 - 仅管理员可见 -->
-      <el-col :span="6" v-if="isAdmin">
+      <el-col :span="isAdmin ? 6 : 12" v-if="isAdmin" class="stats-row">
         <el-card class="stat-card" @click="$router.push('/users')">
           <div class="stat-content">
             <el-icon class="stat-icon"><User /></el-icon>
@@ -190,7 +190,7 @@
         </el-card>
       </el-col>
       
-      <el-col :span="6" v-if="isAdmin">
+      <el-col :span="isAdmin ? 6 : 12" v-if="isAdmin" class="stats-row">
         <el-card class="stat-card" @click="$router.push('/monitor')">
           <div class="stat-content">
             <el-icon class="stat-icon"><Monitor /></el-icon>
@@ -217,7 +217,7 @@
          </el-card>
        </el-col>
        
-       <el-col :span="6">
+       <el-col :span="6" class="stats-row">
          <el-card class="stat-card" @click="$router.push('/organizations')">
            <div class="stat-content">
              <el-icon class="stat-icon"><OfficeBuilding /></el-icon>
@@ -228,7 +228,7 @@
            </div>
          </el-card>
        </el-col>
-       <el-col :span="6">
+       <el-col :span="6" class="stats-row">
          <el-card class="stat-card" @click="$router.push('/data-statistics')">
            <div class="stat-content">
              <el-icon class="stat-icon"><DataBoard /></el-icon>
@@ -239,7 +239,7 @@
            </div>
          </el-card>
        </el-col>
-       <el-col :span="6">
+       <el-col :span="6" class="stats-row">
          <el-card class="stat-card" @click="$router.push('/system-settings')">
            <div class="stat-content">
              <el-icon class="stat-icon"><Setting /></el-icon>
@@ -250,7 +250,7 @@
            </div>
          </el-card>
        </el-col>
-       <el-col :span="6">
+       <el-col :span="6" class="stats-row">
          <el-card class="stat-card" @click="$router.push('/operation-logs')">
            <div class="stat-content">
              <el-icon class="stat-icon"><Document /></el-icon>
