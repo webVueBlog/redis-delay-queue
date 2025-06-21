@@ -49,6 +49,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findByUsernameContainingIgnoreCase(String username, Pageable pageable);
     
     /**
+     * 统计指定时间范围内创建的用户数量
+     */
+    long countByCreatedAtBetween(java.time.LocalDateTime startTime, java.time.LocalDateTime endTime);
+    
+    /**
      * 根据邮箱模糊查询
      */
     Page<User> findByEmailContainingIgnoreCase(String email, Pageable pageable);

@@ -1,20 +1,20 @@
 package com.example.service;
 
-import com.example.model.TableInfo;
 import com.example.model.TableColumn;
+import com.example.model.TableInfo;
 import com.example.model.TableInfoWithColumns;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.dao.DataAccessException;
-import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.ArrayList;
 
 @Service
 @Slf4j
