@@ -3,10 +3,21 @@
     <el-container>
       <el-header>
         <h1>数据库表字段查看器</h1>
-        <el-button type="primary" @click="fetchData" :loading="loading">
-          <el-icon><Refresh /></el-icon>
-          刷新数据
-        </el-button>
+        <div class="header-actions">
+          <el-button 
+            type="info" 
+            @click="openHealthDialog" 
+            :loading="healthLoading"
+            class="health-button"
+          >
+            <el-icon><Monitor /></el-icon>
+            系统健康检查
+          </el-button>
+          <el-button type="primary" @click="fetchData" :loading="loading">
+            <el-icon><Refresh /></el-icon>
+            刷新数据
+          </el-button>
+        </div>
       </el-header>
       
       <el-main>
@@ -133,6 +144,132 @@
         </div>
       </el-main>
     </el-container>
+
+    <!-- 健康检查对话框 -->
+    <el-dialog
+      v-model="showHealthDialog"
+      title="系统健康检查"
+      width="800px"
+      :before-close="handleHealthDialogClose"
+    >
+      <div v-if="healthLoading" class="health-loading">
+        <el-skeleton :rows="3" animated />
+      </div>
+      
+      <div v-else class="health-content">
+        <!-- 总体状态 -->
+        <el-card class="health-overview" shadow="never">
+          <template #header>
+            <div class="card-header">
+              <span>总体状态</span>
+              <el-tag 
+                :type="overallHealth.status === 'UP' ? 'success' : 'danger'" 
+                size="large"
+              >
+                {{ overallHealth.status === 'UP' ? '健康' : '异常' }}
+              </el-tag>
+            </div>
+          </template>
+          <div class="health-summary">
+            <p><strong>应用名称:</strong> {{ overallHealth.application || 'Redis延迟队列系统' }}</p>
+            <p><strong>检查时间:</strong> {{ overallHealth.timestamp || new Date().toLocaleString() }}</p>
+          </div>
+        </el-card>
+
+        <!-- 详细检查项 -->
+        <el-row :gutter="20" class="health-details">
+          <el-col :span="12">
+            <el-card shadow="hover">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><Database /></el-icon>
+                  <span>数据库连接</span>
+                  <el-tag 
+                    :type="healthDetails.database?.status === 'UP' ? 'success' : 'danger'" 
+                    size="small"
+                  >
+                    {{ healthDetails.database?.status === 'UP' ? '正常' : '异常' }}
+                  </el-tag>
+                </div>
+              </template>
+              <div class="health-item-content">
+                <p v-if="healthDetails.database?.message">
+                  {{ healthDetails.database.message }}
+                </p>
+                <p v-if="healthDetails.database?.details">
+                  <small>{{ healthDetails.database.details }}</small>
+                </p>
+              </div>
+            </el-card>
+          </el-col>
+          
+          <el-col :span="12">
+            <el-card shadow="hover">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><Connection /></el-icon>
+                  <span>Redis连接</span>
+                  <el-tag 
+                    :type="healthDetails.redis?.status === 'UP' ? 'success' : 'danger'" 
+                    size="small"
+                  >
+                    {{ healthDetails.redis?.status === 'UP' ? '正常' : '异常' }}
+                  </el-tag>
+                </div>
+              </template>
+              <div class="health-item-content">
+                <p v-if="healthDetails.redis?.message">
+                  {{ healthDetails.redis.message }}
+                </p>
+                <p v-if="healthDetails.redis?.details">
+                  <small>{{ healthDetails.redis.details }}</small>
+                </p>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+
+        <!-- 应用信息 -->
+        <el-card class="app-info" shadow="never">
+          <template #header>
+            <div class="card-header">
+              <el-icon><InfoFilled /></el-icon>
+              <span>应用信息</span>
+            </div>
+          </template>
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="应用版本">
+              {{ appInfo.version || '1.0.0' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="应用描述">
+              {{ appInfo.description || 'Redis延迟队列应用' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="可用处理器">
+              {{ appInfo.jvm?.availableProcessors || 'N/A' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="最大内存">
+              {{ formatMemory(appInfo.jvm?.maxMemory) || 'N/A' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="已用内存">
+              {{ formatMemory(appInfo.jvm?.usedMemory) || 'N/A' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="空闲内存">
+              {{ formatMemory(appInfo.jvm?.freeMemory) || 'N/A' }}
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+      </div>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="fetchHealthData" :loading="healthLoading" type="primary">
+            <el-icon><Refresh /></el-icon>
+            刷新检查
+          </el-button>
+          <el-button @click="showHealthDialog = false">关闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -147,6 +284,13 @@ export default {
     const error = ref('')
     const tableData = ref([])
     const activeNames = ref([])
+    
+    // 健康检查相关状态
+    const showHealthDialog = ref(false)
+    const healthLoading = ref(false)
+    const overallHealth = ref({})
+    const healthDetails = ref({})
+    const appInfo = ref({})
     
     // 处理已分组的表数据
     const groupedTables = computed(() => {
@@ -195,6 +339,72 @@ export default {
       }
     }
     
+    // 获取健康检查数据
+    const fetchHealthData = async () => {
+      healthLoading.value = true
+      
+      try {
+        // 获取总体健康状态
+        const healthResponse = await axios.get('/api/health/')
+        overallHealth.value = healthResponse.data
+        
+        // 获取详细健康检查
+        const detailedResponse = await axios.get('/api/health/detailed')
+        healthDetails.value = detailedResponse.data
+        
+        // 获取应用信息
+        const infoResponse = await axios.get('/api/health/info')
+        appInfo.value = infoResponse.data
+        
+      } catch (err) {
+        console.error('获取健康检查数据失败:', err)
+        // 设置默认的错误状态
+        overallHealth.value = { 
+          status: 'DOWN', 
+          message: '健康检查服务不可用',
+          timestamp: new Date().toLocaleString()
+        }
+        healthDetails.value = {
+          database: { 
+            status: 'DOWN', 
+            message: '无法连接到健康检查服务',
+            details: err.response?.status ? `HTTP ${err.response.status}` : '网络连接失败'
+          },
+          redis: { 
+            status: 'DOWN', 
+            message: '无法连接到健康检查服务',
+            details: err.response?.status ? `HTTP ${err.response.status}` : '网络连接失败'
+          }
+        }
+        appInfo.value = {
+          version: '1.0.0',
+          description: 'Redis延迟队列应用（离线模式）'
+        }
+      } finally {
+        healthLoading.value = false
+      }
+    }
+    
+    // 打开健康检查对话框
+    const openHealthDialog = () => {
+      showHealthDialog.value = true
+      fetchHealthData()
+    }
+    
+    // 格式化内存大小
+    const formatMemory = (bytes) => {
+      if (!bytes || bytes === 0) return '0 B'
+      const k = 1024
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    }
+    
+    // 处理健康检查对话框关闭
+    const handleHealthDialogClose = () => {
+      showHealthDialog.value = false
+    }
+    
     // 组件挂载时获取数据
     onMounted(() => {
       fetchData()
@@ -206,7 +416,16 @@ export default {
       tableData,
       activeNames,
       groupedTables,
-      fetchData
+      fetchData,
+      showHealthDialog,
+      healthLoading,
+      overallHealth,
+      healthDetails,
+      appInfo,
+      fetchHealthData,
+      openHealthDialog,
+      handleHealthDialogClose,
+      formatMemory
     }
   }
 }
@@ -224,6 +443,22 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.health-button {
+  background-color: #67c23a;
+  border-color: #67c23a;
+}
+
+.health-button:hover {
+  background-color: #85ce61;
+  border-color: #85ce61;
 }
 
 .el-header h1 {
@@ -314,5 +549,96 @@ export default {
 
 .el-collapse-item__content {
   padding: 0 20px 20px 20px;
+}
+
+/* 健康检查对话框样式 */
+.health-loading {
+  padding: 20px;
+}
+
+.health-content {
+  padding: 0;
+}
+
+.health-overview {
+  margin-bottom: 20px;
+}
+
+.health-overview .el-card__header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.health-details {
+  margin-bottom: 20px;
+}
+
+.app-info {
+  margin-bottom: 0;
+}
+
+.app-info .el-card__header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.card-header .el-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.card-header span {
+  font-weight: 600;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.health-summary p {
+  margin: 8px 0;
+  color: #606266;
+}
+
+.health-item-content {
+  min-height: 60px;
+}
+
+.health-item-content p {
+  margin: 8px 0;
+  color: #606266;
+}
+
+.health-item-content small {
+  color: #909399;
+  font-size: 12px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.el-descriptions {
+  margin-top: 0;
+}
+
+.el-card {
+  border-radius: 8px;
+}
+
+.el-card__header {
+  padding: 16px 20px;
+}
+
+.el-card__body {
+  padding: 20px;
 }
 </style>
