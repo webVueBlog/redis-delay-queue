@@ -162,7 +162,7 @@ import {
   User, List, Check, TrendCharts, Refresh, Download 
 } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-import axios from 'axios'
+import request from '../utils/request'
 
 // 响应式数据
 const loading = ref(false)
@@ -212,7 +212,7 @@ const loadStatistics = async () => {
       params.endDate = dateRange.value[1]
     }
     
-    const response = await axios.get('/api/statistics', { params })
+    const response = await request.get('/api/statistics', { params })
     if (response.data.success) {
       const data = response.data.data
       Object.assign(statistics, data.overview)
@@ -256,7 +256,7 @@ const exportData = async () => {
       params.endDate = dateRange.value[1]
     }
     
-    const response = await axios.get('/api/statistics/export', { 
+    const response = await request.get('/api/statistics/export', { 
       params,
       responseType: 'blob'
     })
