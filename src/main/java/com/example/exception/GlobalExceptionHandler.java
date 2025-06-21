@@ -108,7 +108,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException e) {
         log.warn("访问被拒绝: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(createErrorResponse("访问被拒绝，权限不足", null));
+                .body(createErrorResponse("访问被拒绝，权限不足。请确保您有管理员权限。", null));
     }
     
     /**

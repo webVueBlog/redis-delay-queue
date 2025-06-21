@@ -694,16 +694,7 @@ const loadQueueStats = async () => {
   }
 }
 
-const loadAppInfo = async () => {
-  try {
-    const response = await axios.get('/api/monitor/app')
-    if (response.data.success) {
-      Object.assign(appInfo, response.data.data)
-    }
-  } catch (error) {
-    console.error('加载应用信息失败:', error)
-  }
-}
+
 
 const loadLogs = async () => {
   loadingLogs.value = true
@@ -775,28 +766,33 @@ const refreshData = async () => {
       loadSystemInfo(),
       loadRedisInfo(),
       loadQueueStats(),
-      loadAppInfo(),
-      loadHistoryData()
+      loadHistoryData(),
+      updatePerformanceMetrics()
     ])
     
     // 检查告警
     checkAlerts()
-    
-    // 更新性能指标
-    updatePerformanceMetrics()
   } finally {
     loading.value = false
   }
 }
 
-const updatePerformanceMetrics = () => {
-  // 模拟性能指标更新
-  performanceMetrics.avgResponseTime = Math.floor(Math.random() * 500) + 50
-  performanceMetrics.qps = Math.floor(Math.random() * 1000) + 100
-  performanceMetrics.qpsChange = Math.floor(Math.random() * 20) - 10
-  performanceMetrics.qpsTrend = performanceMetrics.qpsChange >= 0 ? 'up' : 'down'
-  performanceMetrics.errorRate = Math.floor(Math.random() * 5)
-  performanceMetrics.activeConnections = Math.floor(Math.random() * 100) + 50
+const updatePerformanceMetrics = async () => {
+  try {
+    const response = await axios.get('/api/monitor/performance')
+    if (response.data.success) {
+      Object.assign(performanceMetrics, response.data.data)
+    }
+  } catch (error) {
+    console.error('加载性能指标失败:', error)
+    // 保留原有的模拟数据作为fallback
+    performanceMetrics.avgResponseTime = Math.floor(Math.random() * 500) + 50
+    performanceMetrics.qps = Math.floor(Math.random() * 1000) + 100
+    performanceMetrics.qpsChange = Math.floor(Math.random() * 20) - 10
+    performanceMetrics.qpsTrend = performanceMetrics.qpsChange >= 0 ? 'up' : 'down'
+    performanceMetrics.errorRate = Math.floor(Math.random() * 5)
+    performanceMetrics.activeConnections = Math.floor(Math.random() * 100) + 50
+  }
 }
 
 const clearLogs = () => {

@@ -312,7 +312,7 @@ import {
   Refresh, Plus, Search, Document, Clock, Loading, CircleCheck, View, 
   RefreshRight, Close, Delete 
 } from '@element-plus/icons-vue'
-import axios from 'axios'
+import request from '../utils/request'
 
 // 响应式数据
 const loading = ref(false)
@@ -437,23 +437,27 @@ const loadTasks = async () => {
     const params = {
       page: pagination.page,
       size: pagination.size,
-      ...searchForm
+      taskId: searchForm.taskId,
+      queueName: searchForm.queueName,
+      status: searchForm.status
     }
     
-    if (searchForm.dateRange && searchForm.dateRange.length === 2) {
-      params.startTime = searchForm.dateRange[0]
-      params.endTime = searchForm.dateRange[1]
-    }
-    
-    const response = await axios.get('/api/tasks/my', { params })
+    const response = await request.get('/api/tasks/my', { params })
     if (response.data.success) {
-      tasks.value = response.data.data.tasks
-      pagination.total = response.data.data.total
-      Object.assign(stats, response.data.data.stats)
+      const data = response.data.data
+      tasks.value = data.content || []
+      pagination.total = data.totalElements || 0
+      
+      // 更新统计数据
+      stats.total = data.totalElements || 0
+      stats.pending = tasks.value.filter(t => t.status === 'PENDING').length
+      stats.running = tasks.value.filter(t => t.status === 'RUNNING').length
+      stats.completed = tasks.value.filter(t => t.status === 'COMPLETED').length
+      stats.failed = tasks.value.filter(t => t.status === 'FAILED').length
     }
   } catch (error) {
     console.error('加载任务失败:', error)
-    ElMessage.error('加载任务失败')
+    ElMessage.error('加载任务失败: ' + (error.response?.data?.message || error.message))
   } finally {
     loading.value = false
   }
@@ -521,7 +525,7 @@ const addTask = async () => {
       return
     }
     
-    const response = await axios.post('/api/tasks', taskForm)
+    const response = await request.post('/api/tasks', taskForm)
     if (response.data.success) {
       ElMessage.success('任务创建成功')
       showAddDialog.value = false
@@ -547,7 +551,7 @@ const retryTask = async (task) => {
       type: 'warning'
     })
     
-    const response = await axios.post(`/api/tasks/${task.id}/retry`)
+    const response = await request.post(`/api/tasks/${task.id}/retry`)
     if (response.data.success) {
       ElMessage.success('任务重试成功')
       loadTasks()
@@ -571,7 +575,7 @@ const cancelTask = async (task) => {
       type: 'warning'
     })
     
-    const response = await axios.post(`/api/tasks/${task.id}/cancel`)
+    const response = await request.post(`/api/tasks/${task.id}/cancel`)
     if (response.data.success) {
       ElMessage.success('任务取消成功')
       loadTasks()
@@ -595,7 +599,7 @@ const deleteTask = async (task) => {
       type: 'warning'
     })
     
-    const response = await axios.delete(`/api/tasks/${task.id}`)
+    const response = await request.delete(`/api/tasks/${task.id}`)
     if (response.data.success) {
       ElMessage.success('任务删除成功')
       loadTasks()

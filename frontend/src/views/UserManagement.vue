@@ -178,7 +178,7 @@
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, Edit, Delete, Key } from '@element-plus/icons-vue'
-import axios from 'axios'
+import request from '../utils/request'
 
 // 响应式数据
 const loading = ref(false)
@@ -274,7 +274,7 @@ const loadUsers = async () => {
       ...searchForm
     }
     
-    const response = await axios.get('/api/users', { params })
+    const response = await request.get('/api/users', { params })
     if (response.data.success) {
       const data = response.data.data
       users.value = data.content
@@ -349,7 +349,7 @@ const saveUser = async () => {
         status: userForm.status,
         organizationIds: userForm.organizationIds
       }
-      response = await axios.put(`/api/users/${userForm.id}`, updateData)
+      response = await request.put(`/api/users/${userForm.id}`, updateData)
     } else {
       // 新增用户
       const createData = {
@@ -359,7 +359,7 @@ const saveUser = async () => {
         role: userForm.role,
         organizationIds: userForm.organizationIds
       }
-      response = await axios.post('/api/auth/register', createData)
+      response = await request.post('/api/auth/register', createData)
     }
     
     if (response.data.success) {
@@ -389,7 +389,7 @@ const deleteUser = async (user) => {
       }
     )
     
-    const response = await axios.delete(`/api/users/${user.id}`)
+    const response = await request.delete(`/api/users/${user.id}`)
     if (response.data.success) {
       ElMessage.success('用户删除成功')
       loadUsers()
@@ -417,7 +417,7 @@ const confirmResetPassword = async () => {
     await resetFormRef.value.validate()
     resetting.value = true
     
-    const response = await axios.post('/api/users/reset-password', resetPasswordForm)
+    const response = await request.post('/api/users/reset-password', resetPasswordForm)
     if (response.data.success) {
       ElMessage.success('密码重置成功')
       showResetDialog.value = false

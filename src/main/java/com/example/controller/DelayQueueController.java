@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/delay-queue")
+@RequestMapping("/api")
 public class DelayQueueController {
 
     private final RedisDelayQueue delayQueue;
@@ -16,13 +16,13 @@ public class DelayQueueController {
         this.delayQueue = delayQueue;
     }
 
-    @GetMapping("/add")
+    @GetMapping("/delay-queue/add")
     public String addTask(@RequestParam String taskId, @RequestParam long delaySeconds) {
         delayQueue.addTask(taskId, delaySeconds);
         return "Task added successfully";
     }
 
-    @PostMapping("/tasks")
+    @PostMapping("/delay-queue/tasks")
     public ResponseEntity<Map<String, Object>> createTask(@RequestBody TaskRequest request) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -84,12 +84,31 @@ public class DelayQueueController {
         }
      }
 
-    @GetMapping("/tasks")
+    @GetMapping("/delay-queue/tasks")
     public ResponseEntity<Map<String, Object>> getTasks(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword) {
+        return getTasksInternal(page, size, status, keyword, null);
+    }
+
+    @GetMapping("/tasks/my")
+    public ResponseEntity<Map<String, Object>> getMyTasks(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String taskId,
+            @RequestParam(required = false) String queueName,
+            @RequestParam(required = false) String status) {
+        return getTasksInternal(page, size, status, taskId, queueName);
+    }
+
+    private ResponseEntity<Map<String, Object>> getTasksInternal(
+            int page,
+            int size,
+            String status,
+            String keyword,
+            String queueName) {
         Map<String, Object> response = new HashMap<>();
         try {
             // 从Redis获取所有任务
@@ -142,7 +161,7 @@ public class DelayQueueController {
         }
     }
 
-    @GetMapping("/stats")
+    @GetMapping("/delay-queue/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -157,7 +176,7 @@ public class DelayQueueController {
         }
     }
 
-    @PostMapping("/tasks/{taskId}/retry")
+    @PostMapping("/delay-queue/tasks/{taskId}/retry")
     public ResponseEntity<Map<String, Object>> retryTask(@PathVariable String taskId) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -178,7 +197,7 @@ public class DelayQueueController {
         }
     }
 
-    @PostMapping("/tasks/{taskId}/cancel")
+    @PostMapping("/delay-queue/tasks/{taskId}/cancel")
     public ResponseEntity<Map<String, Object>> cancelTask(@PathVariable String taskId) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -199,7 +218,7 @@ public class DelayQueueController {
         }
     }
 
-    @DeleteMapping("/tasks/{taskId}")
+    @DeleteMapping("/delay-queue/tasks/{taskId}")
     public ResponseEntity<Map<String, Object>> deleteTask(@PathVariable String taskId) {
         Map<String, Object> response = new HashMap<>();
         try {

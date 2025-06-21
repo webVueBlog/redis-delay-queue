@@ -62,6 +62,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/", "/static/**", "/favicon.ico").permitAll()
                 // 管理员接口
                 .antMatchers("/api/admin/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                .antMatchers(HttpMethod.GET, "/api/users/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.PUT, "/api/users/**").hasRole("ADMIN")
                 .antMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
                 .antMatchers(HttpMethod.POST, "/api/users/reset-password").hasRole("ADMIN")
                 // 用户接口
@@ -69,6 +72,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/users/change-password").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/api/users/menus").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/api/users/organizations").hasAnyRole("USER", "ADMIN")
+                // 监控接口
+                .antMatchers("/api/monitor/data", "/api/monitor/system", "/api/monitor/redis", "/api/monitor/queue", "/api/monitor/performance", "/api/monitor/history", "/api/monitor/health-summary").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/api/monitor/api-stats", "/api/monitor/save-history", "/api/monitor/record-request").hasRole("ADMIN")
                 // 其他接口需要认证
                 .anyRequest().authenticated()
                 .and()
