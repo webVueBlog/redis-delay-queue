@@ -177,7 +177,6 @@
         </el-card>
       </el-col>
       
-      <!-- 管理功能区域 - 仅管理员可见 -->
       <el-col :span="isAdmin ? 6 : 12" class="stats-row">
         <el-card class="stat-card" @click="$router.push('/users')">
           <div class="stat-content">
@@ -203,7 +202,6 @@
       </el-col>
     </el-row>
       
-    <!-- 管理功能第二行 - 仅管理员可见 -->
     <el-row :gutter="20" class="stats-row" >
       <el-col :span="6">
          <el-card class="stat-card" @click="$router.push('/menus')">
@@ -292,7 +290,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Clock, Monitor, Menu, OfficeBuilding, DataBoard, Setting, Document, Refresh, Grid } from '@element-plus/icons-vue'
@@ -369,10 +367,23 @@ onMounted(() => {
     }
   })
   
+  // 监听来自App.vue的刷新事件
+  const handleRefreshData = () => {
+    if (isLoggedIn.value) {
+      fetchData()
+    }
+  }
+  window.addEventListener('refreshData', handleRefreshData)
+  
   // 如果用户已登录，自动加载数据
   if (isLoggedIn.value) {
     fetchData()
   }
+  
+  // 组件销毁时移除事件监听器
+  onUnmounted(() => {
+    window.removeEventListener('refreshData', handleRefreshData)
+  })
 })
 </script>
 

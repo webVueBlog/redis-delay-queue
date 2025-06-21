@@ -249,6 +249,9 @@ const healthLoading = ref(false)
 const overallHealth = ref({})
 const healthDetails = ref({})
 const appInfo = ref({})
+
+// 数据刷新相关状态
+const loading = ref(false)
     
 // 修改密码相关
 const showChangePasswordDialog = ref(false)
@@ -291,8 +294,21 @@ const changePasswordRules = {
 
     
 // 获取数据
+const fetchData = async () => {
+  loading.value = true
+  try {
+    // 触发当前路由组件的数据刷新
+    // 通过事件总线通知子组件刷新数据
+    window.dispatchEvent(new CustomEvent('refreshData'))
+    ElMessage.success('数据刷新成功')
+  } catch (error) {
+    console.error('数据刷新失败:', error)
+    ElMessage.error('数据刷新失败')
+  } finally {
+    loading.value = false
+  }
+}
 
-    
 // 菜单选择处理
 const handleMenuSelect = (index) => {
   router.push(index)
