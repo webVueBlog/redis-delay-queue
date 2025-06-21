@@ -133,6 +133,10 @@
                   <el-icon><Connection /></el-icon>
                   <template #title>连接池监控</template>
                 </el-menu-item>
+                <el-menu-item index="/device-registry">
+                  <el-icon><Monitor /></el-icon>
+                  <template #title>设备注册中心</template>
+                </el-menu-item>
                 <el-menu-item index="/data-statistics">
                   <el-icon><DataBoard /></el-icon>
                   <template #title>数据统计</template>
@@ -436,6 +440,7 @@ const updateBreadcrumb = () => {
     '/organizations': [{ title: '系统管理', path: '' }, { title: '组织管理', path: '/organizations' }],
     '/monitor': [{ title: '监控统计', path: '' }, { title: '系统监控', path: '/monitor' }],
     '/database-pool': [{ title: '监控统计', path: '' }, { title: '连接池监控', path: '/database-pool' }],
+    '/device-registry': [{ title: '监控统计', path: '' }, { title: '设备注册中心', path: '/device-registry' }],
     '/data-statistics': [{ title: '监控统计', path: '' }, { title: '数据统计', path: '/data-statistics' }],
     '/operation-logs': [{ title: '监控统计', path: '' }, { title: '操作日志', path: '/operation-logs' }],
     '/system-settings': [{ title: '系统设置', path: '/system-settings' }]

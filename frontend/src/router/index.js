@@ -11,6 +11,7 @@ import OperationLogs from '../views/OperationLogs.vue'
 import MyTasks from '../views/MyTasks.vue'
 import UserPermissionOrganizations from '../views/UserPermissionOrganizations.vue'
 import DatabaseConnectionPool from '../views/DatabaseConnectionPool.vue'
+import DeviceRegistry from '../views/DeviceRegistry.vue'
 import Login from '../views/Login.vue'
 
 const routes = [
@@ -68,6 +69,14 @@ const routes = [
     path: '/database-pool',
     name: 'DatabaseConnectionPool',
     component: DatabaseConnectionPool,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/device-registry',
+    name: 'DeviceRegistry',
+    component: DeviceRegistry,
     meta: {
       requiresAuth: true
     }
