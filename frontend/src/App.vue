@@ -2,16 +2,40 @@
   <div id="app">
     <el-container>
       <el-header>
-        <h1>数据库表字段查看器</h1>
+        <h1>Redis延迟队列管理系统</h1>
+        <div class="header-nav">
+          <el-menu 
+            mode="horizontal" 
+            :default-active="activeIndex"
+            @select="handleMenuSelect"
+            v-if="isLoggedIn">
+            <el-menu-item index="/">首页</el-menu-item>
+            <el-menu-item index="/users" v-if="isAdmin">用户管理</el-menu-item>
+          </el-menu>
+        </div>
         <div class="header-actions">
-          <el-button 
-            type="info" 
-            @click="openHealthDialog" 
-            :loading="healthLoading"
-            class="health-button"
-          >
+          <el-button type="primary" @click="openHealthDialog">
             <el-icon><Monitor /></el-icon>
             系统健康检查
+          </el-button>
+          <div class="user-info" v-if="isLoggedIn">
+            <el-dropdown @command="handleUserCommand">
+              <span class="user-name">
+                {{ username }}
+                <el-icon><ArrowDown /></el-icon>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+                  <el-dropdown-item command="changePassword">修改密码</el-dropdown-item>
+                  <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+          <el-button v-else @click="$router.push('/login')">
+            <el-icon><User /></el-icon>
+            登录
           </el-button>
           <el-button type="primary" @click="fetchData" :loading="loading">
             <el-icon><Refresh /></el-icon>
@@ -182,7 +206,7 @@
             <el-card shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><Database /></el-icon>
+                  <el-icon><DataBoard /></el-icon>
                   <span>数据库连接</span>
                   <el-tag 
                     :type="healthDetails.database?.status === 'UP' ? 'success' : 'danger'" 
@@ -270,20 +294,52 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 修改密码对话框 -->
+    <el-dialog title="修改密码" v-model="showChangePasswordDialog" width="400px">
+      <el-form :model="changePasswordForm" :rules="changePasswordRules" ref="changePasswordFormRef" label-width="100px">
+        <el-form-item label="当前密码" prop="oldPassword">
+          <el-input v-model="changePasswordForm.oldPassword" type="password" show-password />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input v-model="changePasswordForm.newPassword" type="password" show-password />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input v-model="changePasswordForm.confirmPassword" type="password" show-password />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showChangePasswordDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleChangePassword">确认修改</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Monitor, Refresh, DataBoard, User, ArrowDown } from '@element-plus/icons-vue'
 import axios from 'axios'
+import request from './utils/request'
 
 export default {
   name: 'App',
   setup() {
+    // 路由
+    const router = useRouter()
+    const route = useRoute()
+    
     const loading = ref(false)
     const error = ref('')
     const tableData = ref([])
     const activeNames = ref([])
+    
+    // 用户状态
+    const username = ref(localStorage.getItem('username') || '')
+    const userRole = ref(localStorage.getItem('userRole') || '')
+    const userId = ref(localStorage.getItem('userId') || '')
     
     // 健康检查相关状态
     const showHealthDialog = ref(false)
@@ -291,6 +347,44 @@ export default {
     const overallHealth = ref({})
     const healthDetails = ref({})
     const appInfo = ref({})
+    
+    // 修改密码相关
+    const showChangePasswordDialog = ref(false)
+    const changePasswordFormRef = ref()
+    const changePasswordForm = ref({
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    })
+    
+    // 计算属性
+    const isLoggedIn = computed(() => !!username.value)
+    const isAdmin = computed(() => userRole.value === 'ADMIN')
+    const activeIndex = computed(() => route.path)
+    
+    // 修改密码验证规则
+    const changePasswordRules = {
+      oldPassword: [
+        { required: true, message: '请输入当前密码', trigger: 'blur' }
+      ],
+      newPassword: [
+        { required: true, message: '请输入新密码', trigger: 'blur' },
+        { min: 6, message: '密码长度不能少于 6 个字符', trigger: 'blur' }
+      ],
+      confirmPassword: [
+        { required: true, message: '请确认新密码', trigger: 'blur' },
+        {
+          validator: (rule, value, callback) => {
+            if (value !== changePasswordForm.value.newPassword) {
+              callback(new Error('两次输入密码不一致'))
+            } else {
+              callback()
+            }
+          },
+          trigger: 'blur'
+        }
+      ]
+    }
     
     // 处理已分组的表数据
     const groupedTables = computed(() => {
@@ -324,18 +418,101 @@ export default {
       error.value = ''
       
       try {
-        const response = await axios.get('/api/tables/columns')
+        const response = await request.get('/api/tables/mock-columns')
         tableData.value = response.data
         
         // 默认展开第一个表
         if (groupedTables.value.length > 0) {
           activeNames.value = [groupedTables.value[0].tableName]
         }
+        ElMessage.success('数据加载成功')
       } catch (err) {
         error.value = err.response?.data?.message || err.message || '获取数据失败'
         console.error('获取数据失败:', err)
+        ElMessage.error('获取数据失败')
       } finally {
         loading.value = false
+      }
+    }
+    
+    // 菜单选择处理
+    const handleMenuSelect = (index) => {
+      router.push(index)
+    }
+    
+    // 用户命令处理
+    const handleUserCommand = (command) => {
+      switch (command) {
+        case 'profile':
+          ElMessage.info('个人信息功能开发中')
+          break
+        case 'changePassword':
+          showChangePasswordDialog.value = true
+          break
+        case 'logout':
+          handleLogout()
+          break
+      }
+    }
+    
+    // 退出登录
+    const handleLogout = async () => {
+      try {
+        await ElMessageBox.confirm('确定要退出登录吗？', '确认退出', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        
+        // 清除本地存储
+        localStorage.removeItem('token')
+        localStorage.removeItem('userRole')
+        localStorage.removeItem('userId')
+        localStorage.removeItem('username')
+        
+        // 清除axios默认header
+        delete axios.defaults.headers.common['Authorization']
+        
+        // 重置用户状态
+        username.value = ''
+        userRole.value = ''
+        userId.value = ''
+        
+        ElMessage.success('退出登录成功')
+        router.push('/login')
+      } catch (error) {
+        // 用户取消退出
+      }
+    }
+    
+    // 修改密码
+    const handleChangePassword = async () => {
+      if (!changePasswordFormRef.value) return
+      
+      try {
+        await changePasswordFormRef.value.validate()
+        
+        const response = await request.post('/api/users/change-password', {
+          oldPassword: changePasswordForm.value.oldPassword,
+          newPassword: changePasswordForm.value.newPassword
+        })
+        
+        if (response.data.success) {
+          ElMessage.success('密码修改成功')
+          showChangePasswordDialog.value = false
+          
+          // 清空表单
+          Object.assign(changePasswordForm.value, {
+            oldPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+          })
+        } else {
+          ElMessage.error(response.data.message || '密码修改失败')
+        }
+      } catch (error) {
+        console.error('修改密码失败:', error)
+        ElMessage.error('修改密码失败')
       }
     }
     
@@ -425,7 +602,21 @@ export default {
       fetchHealthData,
       openHealthDialog,
       handleHealthDialogClose,
-      formatMemory
+      formatMemory,
+      username,
+      userRole,
+      userId,
+      isLoggedIn,
+      isAdmin,
+      activeIndex,
+      handleMenuSelect,
+      handleUserCommand,
+      handleLogout,
+      showChangePasswordDialog,
+      changePasswordForm,
+      changePasswordFormRef,
+      changePasswordRules,
+      handleChangePassword
     }
   }
 }
@@ -440,31 +631,67 @@ export default {
   background-color: #545c64;
   color: #fff;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
   align-items: center;
-}
-
-.health-button {
-  background-color: #67c23a;
-  border-color: #67c23a;
-}
-
-.health-button:hover {
-  background-color: #85ce61;
-  border-color: #85ce61;
+  padding: 0 20px;
+  height: 60px;
 }
 
 .el-header h1 {
   margin: 0;
   font-size: 24px;
-  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.header-nav {
+  flex: 1;
+  margin: 0 20px;
+}
+
+.header-nav :deep(.el-menu) {
+  background-color: transparent;
+  border-bottom: none;
+}
+
+.header-nav :deep(.el-menu-item) {
+  color: #fff;
+  border-bottom: 2px solid transparent;
+}
+
+.header-nav :deep(.el-menu-item:hover) {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.header-nav :deep(.el-menu-item.is-active) {
+  background-color: transparent;
+  border-bottom-color: #409eff;
+  color: #409eff;
+}
+
+.header-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.user-info {
+  color: #fff;
+}
+
+.user-name {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.user-name:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .el-main {
