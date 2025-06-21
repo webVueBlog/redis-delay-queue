@@ -16,6 +16,14 @@
           <el-icon><Delete /></el-icon>
           清空日志
         </el-button>
+        <el-button 
+          type="danger" 
+          :disabled="selectedLogs.length === 0"
+          @click="batchDeleteLogs"
+        >
+          <el-icon><Delete /></el-icon>
+          批量删除 ({{ selectedLogs.length }})
+        </el-button>
       </div>
     </div>
 
@@ -268,7 +276,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   Refresh, Download, Delete, Search, Document, Calendar, Warning, User, View 
 } from '@element-plus/icons-vue'
-import axios from 'axios'
+import request from '@/utils/request'
 
 // 响应式数据
 const loading = ref(false)
@@ -378,7 +386,7 @@ const loadLogs = async () => {
   loading.value = true
   try {
     const params = {
-      page: pagination.page,
+      page: pagination.page - 1, // 后端从0开始
       size: pagination.size,
       ...searchForm
     }
@@ -386,20 +394,62 @@ const loadLogs = async () => {
     if (searchForm.dateRange && searchForm.dateRange.length === 2) {
       params.startTime = searchForm.dateRange[0]
       params.endTime = searchForm.dateRange[1]
+      delete params.dateRange
     }
     
-    const response = await axios.get('/api/logs', { params })
-    if (response.data.success) {
-      logs.value = response.data.data.logs
-      pagination.total = response.data.data.total
-      Object.assign(stats, response.data.data.stats)
-    }
+    const response = await request.get('/api/logs', { params })
+    logs.value = response.data.content || []
+    pagination.total = response.data.totalElements || 0
+    
+    // 加载统计数据
+    await loadStats()
   } catch (error) {
     console.error('加载日志失败:', error)
     ElMessage.error('加载日志失败')
   } finally {
     loading.value = false
   }
+}
+
+// 加载统计数据
+const loadStats = async () => {
+  try {
+    const params = {}
+    if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+      params.startTime = searchForm.dateRange[0]
+      params.endTime = searchForm.dateRange[1]
+    }
+    
+    const response = await request.get('/api/logs/stats', { params })
+    Object.assign(stats, response.data)
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+    // 如果统计接口失败，使用本地计算
+    updateStatsLocally()
+  }
+}
+
+// 本地计算统计数据
+const updateStatsLocally = () => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  const todayLogs = logs.value.filter(log => 
+    new Date(log.createdAt) >= today
+  )
+  
+  const errorLogs = logs.value.filter(log => 
+    log.level === 'ERROR'
+  )
+  
+  const uniqueUsers = new Set(logs.value.map(log => log.username))
+  
+  Object.assign(stats, {
+    total: logs.value.length,
+    today: todayLogs.length,
+    errors: errorLogs.length,
+    activeUsers: uniqueUsers.size
+  })
 }
 
 // 搜索日志
@@ -444,36 +494,56 @@ const handleSelectionChange = (selection) => {
 }
 
 // 查看详情
-const viewDetail = (log) => {
-  currentLog.value = log
-  showDetailDialog.value = true
+const viewDetail = async (log) => {
+  try {
+    const response = await request.get(`/api/logs/${log.id}`)
+    currentLog.value = response.data
+    showDetailDialog.value = true
+  } catch (error) {
+    console.error('获取日志详情失败:', error)
+    ElMessage.error('获取日志详情失败')
+  }
 }
 
 // 导出日志
 const exportLogs = async () => {
   try {
+    ElMessage.loading('正在导出日志...', 0)
+    
     const params = { ...searchForm }
     if (searchForm.dateRange && searchForm.dateRange.length === 2) {
       params.startTime = searchForm.dateRange[0]
       params.endTime = searchForm.dateRange[1]
+      delete params.dateRange
     }
     
-    const response = await axios.get('/api/logs/export', { 
+    const response = await request.get('/api/logs/export', { 
       params,
       responseType: 'blob'
     })
     
     // 创建下载链接
-    const blob = new Blob([response.data], { type: 'application/vnd.ms-excel' })
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `operation_logs_${new Date().toISOString().split('T')[0]}.xlsx`
+    
+    // 生成文件名
+    const now = new Date()
+    const timestamp = now.toISOString().slice(0, 19).replace(/[:-]/g, '')
+    link.download = `操作日志_${timestamp}.xlsx`
+    
+    document.body.appendChild(link)
     link.click()
+    document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
     
+    ElMessage.destroy()
     ElMessage.success('日志导出成功')
   } catch (error) {
+    ElMessage.destroy()
     console.error('导出日志失败:', error)
     ElMessage.error('导出日志失败')
   }
@@ -488,17 +558,47 @@ const clearLogs = async () => {
       type: 'warning'
     })
     
-    const response = await axios.delete('/api/logs')
-    if (response.data.success) {
-      ElMessage.success('日志清空成功')
-      loadLogs()
-    } else {
-      ElMessage.error(response.data.message || '日志清空失败')
+    const params = {}
+    // 如果有时间范围，只清空该范围内的日志
+    if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+      params.startTime = searchForm.dateRange[0]
+      params.endTime = searchForm.dateRange[1]
     }
+    
+    await request.delete('/api/logs', { params })
+    ElMessage.success('日志清空成功')
+    loadLogs()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('清空日志失败:', error)
       ElMessage.error('清空日志失败')
+    }
+  }
+}
+
+// 批量删除日志
+const batchDeleteLogs = async () => {
+  if (selectedLogs.value.length === 0) {
+    ElMessage.warning('请先选择要删除的日志')
+    return
+  }
+  
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedLogs.value.length} 条日志吗？此操作不可恢复！`, '确认删除', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    const ids = selectedLogs.value.map(log => log.id)
+    await request.delete('/api/logs/batch', { data: { ids } })
+    ElMessage.success('批量删除成功')
+    selectedLogs.value = []
+    loadLogs()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+      ElMessage.error('批量删除失败')
     }
   }
 }

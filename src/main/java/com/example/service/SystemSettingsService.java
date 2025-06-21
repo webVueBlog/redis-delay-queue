@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 系统设置服务类
@@ -113,8 +114,13 @@ public class SystemSettingsService {
      * 获取单个设置值
      */
     public String getSettingValue(String category, String settingKey, String defaultValue) {
-        Optional<SystemSettings> setting = systemSettingsRepository.findByCategoryAndSettingKey(category, settingKey);
-        return setting.map(SystemSettings::getSettingValue).orElse(defaultValue);
+        try {
+            Optional<SystemSettings> setting = systemSettingsRepository.findByCategoryAndSettingKey(category, settingKey);
+            return setting.map(SystemSettings::getSettingValue).orElse(defaultValue);
+        } catch (Exception e) {
+            log.warn("查询设置时发生异常，使用默认值。category: {}, settingKey: {}, error: {}", category, settingKey, e.getMessage());
+            return defaultValue;
+        }
     }
     
     /**
@@ -122,22 +128,73 @@ public class SystemSettingsService {
      */
     @Transactional
     public void saveOrUpdateSetting(String category, String settingKey, String settingValue, String updatedBy) {
-        Optional<SystemSettings> existingSetting = systemSettingsRepository.findByCategoryAndSettingKey(category, settingKey);
-        
-        if (existingSetting.isPresent()) {
-            SystemSettings setting = existingSetting.get();
-            setting.setSettingValue(settingValue);
-            setting.setUpdatedBy(updatedBy);
-            systemSettingsRepository.save(setting);
-        } else {
-            SystemSettings newSetting = new SystemSettings();
-            newSetting.setCategory(category);
-            newSetting.setSettingKey(settingKey);
-            newSetting.setSettingValue(settingValue);
-            newSetting.setDataType("STRING");
-            newSetting.setCreatedBy(updatedBy);
-            newSetting.setUpdatedBy(updatedBy);
-            systemSettingsRepository.save(newSetting);
+        try {
+            Optional<SystemSettings> existingSetting = systemSettingsRepository.findByCategoryAndSettingKey(category, settingKey);
+            
+            if (existingSetting.isPresent()) {
+                SystemSettings setting = existingSetting.get();
+                setting.setSettingValue(settingValue);
+                setting.setUpdatedBy(updatedBy);
+                systemSettingsRepository.save(setting);
+            } else {
+                SystemSettings newSetting = new SystemSettings();
+                newSetting.setCategory(category);
+                newSetting.setSettingKey(settingKey);
+                newSetting.setSettingValue(settingValue);
+                newSetting.setDataType("STRING");
+                newSetting.setCreatedBy(updatedBy);
+                newSetting.setUpdatedBy(updatedBy);
+                systemSettingsRepository.save(newSetting);
+            }
+        } catch (Exception e) {
+            log.error("保存或更新设置时发生异常。category: {}, settingKey: {}, error: {}", category, settingKey, e.getMessage(), e);
+            // 如果是重复数据异常，尝试清理重复数据
+            if (e.getMessage().contains("NonUniqueResultException") || e.getMessage().contains("query did not return a unique result")) {
+                cleanupDuplicateSettings(category, settingKey, settingValue, updatedBy);
+            } else {
+                throw new RuntimeException("保存设置失败: " + e.getMessage(), e);
+            }
+        }
+    }
+    
+    /**
+     * 清理重复的设置数据
+     */
+    @Transactional
+    private void cleanupDuplicateSettings(String category, String settingKey, String settingValue, String updatedBy) {
+        try {
+            // 查找所有重复的记录
+             List<SystemSettings> duplicateSettings = systemSettingsRepository.findByCategory(category)
+                 .stream()
+                 .filter(s -> s.getSettingKey().equals(settingKey))
+                 .collect(Collectors.toList());
+            
+            if (duplicateSettings.size() > 1) {
+                log.warn("发现重复设置数据，category: {}, settingKey: {}, 重复数量: {}", category, settingKey, duplicateSettings.size());
+                
+                // 保留最新的一条记录，删除其他的
+                SystemSettings latestSetting = duplicateSettings.stream()
+                    .max((s1, s2) -> s1.getUpdatedAt().compareTo(s2.getUpdatedAt()))
+                    .orElse(duplicateSettings.get(0));
+                
+                // 更新保留的记录
+                latestSetting.setSettingValue(settingValue);
+                latestSetting.setUpdatedBy(updatedBy);
+                systemSettingsRepository.save(latestSetting);
+                
+                // 删除其他重复记录
+                duplicateSettings.stream()
+                    .filter(s -> !s.getId().equals(latestSetting.getId()))
+                    .forEach(s -> {
+                        log.info("删除重复设置记录，ID: {}, category: {}, settingKey: {}", s.getId(), category, settingKey);
+                        systemSettingsRepository.delete(s);
+                    });
+                
+                log.info("重复数据清理完成，category: {}, settingKey: {}", category, settingKey);
+            }
+        } catch (Exception e) {
+            log.error("清理重复设置数据时发生异常，category: {}, settingKey: {}, error: {}", category, settingKey, e.getMessage(), e);
+            throw new RuntimeException("清理重复数据失败: " + e.getMessage(), e);
         }
     }
     

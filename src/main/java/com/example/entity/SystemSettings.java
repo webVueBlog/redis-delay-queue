@@ -12,7 +12,8 @@ import javax.persistence.*;
  * 系统设置实体类
  */
 @Entity
-@Table(name = "system_settings")
+@Table(name = "system_settings", 
+       uniqueConstraints = @UniqueConstraint(columnNames = {"category", "setting_key"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

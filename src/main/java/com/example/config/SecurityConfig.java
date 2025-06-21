@@ -84,7 +84,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        // 当allowCredentials为true时，不能使用"*"，需要指定具体的域名
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*", 
+            "http://127.0.0.1:*",
+            "http://192.168.*.*:*",
+            "http://10.*.*.*:*"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

@@ -17,7 +17,7 @@ import java.util.Map;
 @RequestMapping("/api/settings")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*", "http://192.168.*.*:*", "http://10.*.*.*:*"}, allowCredentials = "true")
 public class SystemSettingsController {
     
     private final SystemSettingsService systemSettingsService;
