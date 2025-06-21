@@ -95,15 +95,94 @@ INSERT IGNORE INTO role_permissions (role, permission, description) VALUES
 ('ADMIN', 'table:read', '查看表格数据'),
 ('ADMIN', 'health:read', '查看健康状态');
 
+-- 创建系统设置表
+CREATE TABLE IF NOT EXISTS system_settings (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    category VARCHAR(50) NOT NULL COMMENT '设置分类',
+    setting_key VARCHAR(100) NOT NULL COMMENT '设置键',
+    setting_value TEXT COMMENT '设置值',
+    description VARCHAR(500) COMMENT '设置描述',
+    data_type VARCHAR(20) DEFAULT 'STRING' COMMENT '数据类型',
+    is_sensitive BOOLEAN DEFAULT FALSE COMMENT '是否敏感数据',
+    is_editable BOOLEAN DEFAULT TRUE COMMENT '是否可编辑',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    created_by VARCHAR(100) COMMENT '创建者',
+    updated_by VARCHAR(100) COMMENT '更新者',
+    UNIQUE KEY uk_category_key (category, setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统设置表';
+
+-- 插入默认系统设置数据
+-- 基础设置
+INSERT IGNORE INTO system_settings (category, setting_key, setting_value, description, data_type, created_by, updated_by) VALUES 
+('basic', 'systemName', 'Redis延迟队列系统', '系统名称', 'STRING', 'system', 'system'),
+('basic', 'systemDescription', '基于Redis的延迟队列管理系统', '系统描述', 'STRING', 'system', 'system'),
+('basic', 'systemVersion', '1.0.0', '系统版本', 'STRING', 'system', 'system'),
+('basic', 'adminEmail', 'admin@example.com', '管理员邮箱', 'STRING', 'system', 'system'),
+('basic', 'timezone', 'Asia/Shanghai', '时区设置', 'STRING', 'system', 'system'),
+('basic', 'logLevel', 'INFO', '日志级别', 'STRING', 'system', 'system');
+
+-- Redis配置
+INSERT IGNORE INTO system_settings (category, setting_key, setting_value, description, data_type, created_by, updated_by) VALUES 
+('redis', 'host', 'localhost', 'Redis主机地址', 'STRING', 'system', 'system'),
+('redis', 'port', '6379', 'Redis端口', 'INTEGER', 'system', 'system'),
+('redis', 'database', '0', 'Redis数据库索引', 'INTEGER', 'system', 'system'),
+('redis', 'password', '', 'Redis密码', 'STRING', 'system', 'system'),
+('redis', 'timeout', '5000', '连接超时时间(ms)', 'INTEGER', 'system', 'system'),
+('redis', 'maxActive', '20', '最大活跃连接数', 'INTEGER', 'system', 'system'),
+('redis', 'maxIdle', '10', '最大空闲连接数', 'INTEGER', 'system', 'system'),
+('redis', 'minIdle', '5', '最小空闲连接数', 'INTEGER', 'system', 'system');
+
+-- 队列设置
+INSERT IGNORE INTO system_settings (category, setting_key, setting_value, description, data_type, created_by, updated_by) VALUES 
+('queue', 'defaultQueueName', 'default', '默认队列名称', 'STRING', 'system', 'system'),
+('queue', 'maxRetryCount', '3', '最大重试次数', 'INTEGER', 'system', 'system'),
+('queue', 'taskTimeout', '300', '任务超时时间(秒)', 'INTEGER', 'system', 'system'),
+('queue', 'batchSize', '100', '批处理大小', 'INTEGER', 'system', 'system'),
+('queue', 'scanInterval', '1000', '扫描间隔(ms)', 'INTEGER', 'system', 'system'),
+('queue', 'enablePriority', 'true', '启用优先级', 'BOOLEAN', 'system', 'system');
+
+-- 安全设置
+INSERT IGNORE INTO system_settings (category, setting_key, setting_value, description, data_type, is_sensitive, created_by, updated_by) VALUES 
+('security', 'jwtSecret', 'mySecretKey', 'JWT密钥', 'STRING', TRUE, 'system', 'system'),
+('security', 'tokenExpiration', '86400', 'Token过期时间(秒)', 'INTEGER', FALSE, 'system', 'system'),
+('security', 'passwordMinLength', '6', '密码最小长度', 'INTEGER', FALSE, 'system', 'system'),
+('security', 'loginFailureLockCount', '5', '登录失败锁定次数', 'INTEGER', FALSE, 'system', 'system'),
+('security', 'enableTwoFactor', 'false', '启用双因子认证', 'BOOLEAN', FALSE, 'system', 'system'),
+('security', 'ipWhitelist', '', 'IP白名单', 'STRING', FALSE, 'system', 'system');
+
+-- 通知设置
+INSERT IGNORE INTO system_settings (category, setting_key, setting_value, description, data_type, is_sensitive, created_by, updated_by) VALUES 
+('notification', 'enableEmailNotification', 'false', '启用邮件通知', 'BOOLEAN', FALSE, 'system', 'system'),
+('notification', 'smtpHost', '', 'SMTP主机', 'STRING', FALSE, 'system', 'system'),
+('notification', 'smtpPort', '587', 'SMTP端口', 'INTEGER', FALSE, 'system', 'system'),
+('notification', 'smtpUsername', '', 'SMTP用户名', 'STRING', FALSE, 'system', 'system'),
+('notification', 'smtpPassword', '', 'SMTP密码', 'STRING', TRUE, 'system', 'system'),
+('notification', 'enableWebhookNotification', 'false', '启用Webhook通知', 'BOOLEAN', FALSE, 'system', 'system'),
+('notification', 'webhookUrl', '', 'Webhook URL', 'STRING', FALSE, 'system', 'system'),
+('notification', 'notificationEvents', 'task_failed,task_completed', '通知事件', 'STRING', FALSE, 'system', 'system');
+
+-- 性能优化设置
+INSERT IGNORE INTO system_settings (category, setting_key, setting_value, description, data_type, created_by, updated_by) VALUES 
+('performance', 'threadPoolSize', '10', '线程池大小', 'INTEGER', 'system', 'system'),
+('performance', 'queueCapacity', '1000', '队列容量', 'INTEGER', 'system', 'system'),
+('performance', 'enableCache', 'true', '启用缓存', 'BOOLEAN', 'system', 'system'),
+('performance', 'enableCompression', 'false', '启用压缩', 'BOOLEAN', 'system', 'system'),
+('performance', 'connectionPoolSize', '20', '连接池大小', 'INTEGER', 'system', 'system'),
+('performance', 'maxConcurrentRequests', '100', '最大并发请求数', 'INTEGER', 'system', 'system'),
+('performance', 'requestTimeout', '30', '请求超时时间(秒)', 'INTEGER', 'system', 'system');
+
 -- 创建索引
-CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
-CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
-CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
-CREATE INDEX IF NOT EXISTS idx_organizations_parent_id ON organizations(parent_id);
-CREATE INDEX IF NOT EXISTS idx_menus_parent_id ON menus(parent_id);
-CREATE INDEX IF NOT EXISTS idx_role_permissions_role ON role_permissions(role);
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_system_settings_category ON system_settings(category);
+CREATE INDEX idx_system_settings_key ON system_settings(setting_key);
+CREATE INDEX idx_users_status ON users(status);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_created_at ON users(created_at);
+CREATE INDEX idx_organizations_parent_id ON organizations(parent_id);
+CREATE INDEX idx_menus_parent_id ON menus(parent_id);
+CREATE INDEX idx_role_permissions_role ON role_permissions(role);
 
 -- 显示创建结果
 SELECT 'Database initialization completed successfully!' as message;

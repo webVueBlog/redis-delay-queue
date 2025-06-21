@@ -3,7 +3,7 @@
     <!-- 页面标题 -->
     <div class="page-header">
       <h2>系统设置</h2>
-      <el-button type="primary" @click="saveAllSettings" :loading="saving">
+      <el-button type="primary" @click="saveAllSettings" size="large" :loading="loading">
         <el-icon><Check /></el-icon>
         保存所有设置
       </el-button>
@@ -95,7 +95,7 @@
           <template #header>
             <div class="card-header">
               <span>Redis配置</span>
-              <el-button type="primary" size="small" @click="testRedisConnection">
+              <el-button type="primary" size="small" class="test-redis-btn" @click="testRedisConnection" :loading="loading">
                 <el-icon><Connection /></el-icon>
                 测试连接
               </el-button>
@@ -283,8 +283,8 @@ import {
 import axios from 'axios'
 
 // 响应式数据
-const saving = ref(false)
 const activeCategory = ref('basic')
+const loading = ref(false)
 
 // 基础设置
 const basicSettings = reactive({
@@ -364,18 +364,23 @@ const loadSettings = async () => {
   try {
     const response = await axios.get('/api/settings')
     if (response.data.success) {
-      const settings = response.data.data
+      const data = response.data.data
       
-      if (settings.basic) Object.assign(basicSettings, settings.basic)
-      if (settings.redis) Object.assign(redisSettings, settings.redis)
-      if (settings.queue) Object.assign(queueSettings, settings.queue)
-      if (settings.security) Object.assign(securitySettings, settings.security)
-      if (settings.notification) Object.assign(notificationSettings, settings.notification)
-      if (settings.performance) Object.assign(performanceSettings, settings.performance)
+      // 更新各个设置对象
+      Object.assign(basicSettings, data.basicSettings || {})
+      Object.assign(redisSettings, data.redisSettings || {})
+      Object.assign(queueSettings, data.queueSettings || {})
+      Object.assign(securitySettings, data.securitySettings || {})
+      Object.assign(notificationSettings, data.notificationSettings || {})
+      Object.assign(performanceSettings, data.performanceSettings || {})
+      
+      ElMessage.success('设置加载成功')
+    } else {
+      ElMessage.error(response.data.message || '加载设置失败')
     }
   } catch (error) {
     console.error('加载设置失败:', error)
-    ElMessage.error('加载设置失败')
+    ElMessage.error('加载设置失败: ' + (error.response?.data?.message || error.message))
   }
 }
 
@@ -391,24 +396,29 @@ const saveAllSettings = async () => {
     saving.value = true
     
     const settings = {
-      basic: basicSettings,
-      redis: redisSettings,
-      queue: queueSettings,
-      security: securitySettings,
-      notification: notificationSettings,
-      performance: performanceSettings
+      basicSettings: { ...basicSettings },
+      redisSettings: { ...redisSettings },
+      queueSettings: { ...queueSettings },
+      securitySettings: { ...securitySettings },
+      notificationSettings: { ...notificationSettings },
+      performanceSettings: { ...performanceSettings }
     }
     
-    const response = await axios.put('/api/settings', settings)
+    const response = await axios.put('/api/settings', settings, {
+      headers: {
+        'X-User-Name': 'admin' // 实际项目中应该从用户状态获取
+      }
+    })
+    
     if (response.data.success) {
       ElMessage.success('设置保存成功')
     } else {
-      ElMessage.error(response.data.message || '设置保存失败')
+      ElMessage.error(response.data.message || '保存设置失败')
     }
   } catch (error) {
     if (error !== 'cancel') {
       console.error('保存设置失败:', error)
-      ElMessage.error('保存设置失败')
+      ElMessage.error('保存设置失败: ' + (error.response?.data?.message || error.message))
     }
   } finally {
     saving.value = false
@@ -418,7 +428,29 @@ const saveAllSettings = async () => {
 // 测试Redis连接
 const testRedisConnection = async () => {
   try {
-    const response = await axios.post('/api/settings/test-redis', redisSettings)
+    // 验证必填字段
+    if (!redisSettings.host || !redisSettings.port) {
+      ElMessage.warning('请填写Redis主机地址和端口')
+      return
+    }
+    
+    const testButton = document.querySelector('.test-redis-btn')
+    if (testButton) {
+      testButton.disabled = true
+      testButton.textContent = '测试中...'
+    }
+    
+    const response = await axios.post('/api/settings/test-redis', {
+      host: redisSettings.host,
+      port: redisSettings.port,
+      database: redisSettings.database,
+      password: redisSettings.password,
+      timeout: redisSettings.timeout,
+      maxActive: redisSettings.maxActive,
+      maxIdle: redisSettings.maxIdle,
+      minIdle: redisSettings.minIdle
+    })
+    
     if (response.data.success) {
       ElMessage.success('Redis连接测试成功')
     } else {
@@ -426,7 +458,13 @@ const testRedisConnection = async () => {
     }
   } catch (error) {
     console.error('Redis连接测试失败:', error)
-    ElMessage.error('Redis连接测试失败')
+    ElMessage.error('Redis连接测试失败: ' + (error.response?.data?.message || error.message))
+  } finally {
+    const testButton = document.querySelector('.test-redis-btn')
+    if (testButton) {
+      testButton.disabled = false
+      testButton.textContent = '测试连接'
+    }
   }
 }
 
