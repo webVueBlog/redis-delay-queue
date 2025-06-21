@@ -17,9 +17,29 @@
               <el-icon><Clock /></el-icon>
               <span>延迟队列</span>
             </el-menu-item>
+            <el-menu-item index="/my-tasks">
+              <el-icon><DataBoard /></el-icon>
+              <span>我的任务</span>
+            </el-menu-item>
+            <el-menu-item index="/user-permission-organizations">
+              <el-icon><OfficeBuilding /></el-icon>
+              <span>权限组织</span>
+            </el-menu-item>
             <el-menu-item index="/monitor" v-if="isAdmin">
               <el-icon><Monitor /></el-icon>
               <span>系统监控</span>
+            </el-menu-item>
+            <el-menu-item index="/data-statistics" v-if="isAdmin">
+              <el-icon><DataBoard /></el-icon>
+              <span>数据统计</span>
+            </el-menu-item>
+            <el-menu-item index="/system-settings" v-if="isAdmin">
+              <el-icon><Setting /></el-icon>
+              <span>系统设置</span>
+            </el-menu-item>
+            <el-menu-item index="/operation-logs" v-if="isAdmin">
+              <el-icon><Document /></el-icon>
+              <span>操作日志</span>
             </el-menu-item>
           </el-menu>
         </div>
@@ -328,14 +348,15 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import {useRouter, useRoute, createRouter as $router} from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Monitor, Refresh, DataBoard, User, ArrowDown, Clock, Grid, Connection, InfoFilled } from '@element-plus/icons-vue'
+import { Monitor, Refresh, DataBoard, User, ArrowDown, Clock, Grid, Connection, InfoFilled, Setting, Document, OfficeBuilding } from '@element-plus/icons-vue'
 import axios from 'axios'
 import request from './utils/request'
 
 export default {
   name: 'App',
+  methods: {$router},
   setup() {
     // 路由
     const router = useRouter()

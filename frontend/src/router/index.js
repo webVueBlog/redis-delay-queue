@@ -5,6 +5,11 @@ import MenuManagement from '../views/MenuManagement.vue'
 import OrganizationManagement from '../views/OrganizationManagement.vue'
 import DelayQueueManagement from '../views/DelayQueueManagement.vue'
 import SystemMonitor from '../views/SystemMonitor.vue'
+import DataStatistics from '../views/DataStatistics.vue'
+import SystemSettings from '../views/SystemSettings.vue'
+import OperationLogs from '../views/OperationLogs.vue'
+import MyTasks from '../views/MyTasks.vue'
+import UserPermissionOrganizations from '../views/UserPermissionOrganizations.vue'
 import Login from '../views/Login.vue'
 
 const routes = [
@@ -61,7 +66,46 @@ const routes = [
       requiresAuth: true,
       requiresAdmin: true
     }
-  }
+  },
+  {
+    path: '/data-statistics',
+    name: 'DataStatistics',
+    component: DataStatistics,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
+    path: '/system-settings',
+    name: 'SystemSettings',
+    component: SystemSettings,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
+    path: '/operation-logs',
+    name: 'OperationLogs',
+    component: OperationLogs,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
+      path: '/my-tasks',
+      name: 'MyTasks',
+      component: MyTasks,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/user-permission-organizations',
+      name: 'UserPermissionOrganizations',
+      component: UserPermissionOrganizations,
+      meta: { requiresAuth: true }
+    }
 ]
 
 const router = createRouter({

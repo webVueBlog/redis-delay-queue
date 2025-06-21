@@ -77,7 +77,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
+import request from '../utils/request'
 
 const router = useRouter()
 const loading = ref(false)
@@ -146,7 +146,7 @@ const handleLogin = async () => {
     await loginFormRef.value.validate()
     loading.value = true
     
-    const response = await axios.post('/api/auth/login', loginForm)
+    const response = await request.post('/api/auth/login', loginForm)
     
     if (response.data.success) {
       const { token, user } = response.data.data
@@ -157,8 +157,8 @@ const handleLogin = async () => {
       localStorage.setItem('userId', user.id)
       localStorage.setItem('username', user.username)
       
-      // 设置axios默认header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      // 设置request默认header
+      request.defaults.headers.common['Authorization'] = `Bearer ${token}`
       
       ElMessage.success('登录成功')
       
@@ -189,7 +189,7 @@ const handleRegister = async () => {
     registering.value = true
     
     const { confirmPassword, ...registerData } = registerForm
-    const response = await axios.post('/api/auth/register', registerData)
+    const response = await request.post('/api/auth/register', registerData)
     
     if (response.data.success) {
       ElMessage.success('注册成功，请登录')

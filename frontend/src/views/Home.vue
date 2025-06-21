@@ -22,12 +22,24 @@
       </el-col>
       
       <el-col :span="isAdmin ? 6 : 12">
-        <el-card class="stat-card">
+        <el-card class="stat-card" @click="$router.push('/my-tasks')">
           <div class="stat-content">
             <el-icon class="stat-icon"><DataBoard /></el-icon>
             <div class="stat-info">
               <h3>我的任务</h3>
               <p>查看我的队列任务</p>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      
+      <el-col :span="6" v-if="!isAdmin">
+        <el-card class="stat-card" @click="$router.push('/user-permission-organizations')">
+          <div class="stat-content">
+            <el-icon class="stat-icon"><OfficeBuilding /></el-icon>
+            <div class="stat-info">
+              <h3>权限组织</h3>
+              <p>查看我的权限组织和管理范围</p>
             </div>
           </div>
         </el-card>
@@ -85,7 +97,7 @@
          </el-card>
        </el-col>
        <el-col :span="6">
-         <el-card class="stat-card">
+         <el-card class="stat-card" @click="$router.push('/data-statistics')">
            <div class="stat-content">
              <el-icon class="stat-icon"><DataBoard /></el-icon>
              <div class="stat-info">
@@ -96,7 +108,7 @@
          </el-card>
        </el-col>
        <el-col :span="6">
-         <el-card class="stat-card">
+         <el-card class="stat-card" @click="$router.push('/system-settings')">
            <div class="stat-content">
              <el-icon class="stat-icon"><Setting /></el-icon>
              <div class="stat-info">
@@ -107,7 +119,7 @@
          </el-card>
        </el-col>
        <el-col :span="6">
-         <el-card class="stat-card">
+         <el-card class="stat-card" @click="$router.push('/operation-logs')">
            <div class="stat-content">
              <el-icon class="stat-icon"><Document /></el-icon>
              <div class="stat-info">
@@ -196,6 +208,17 @@ onMounted(() => {
 
 .stat-card {
   height: 120px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:active {
+  transform: translateY(0);
 }
 
 .stat-content {
