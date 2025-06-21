@@ -1,6 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import UserManagement from '../views/UserManagement.vue'
+import MenuManagement from '../views/MenuManagement.vue'
+import OrganizationManagement from '../views/OrganizationManagement.vue'
+import DelayQueueManagement from '../views/DelayQueueManagement.vue'
+import SystemMonitor from '../views/SystemMonitor.vue'
 import Login from '../views/Login.vue'
 
 const routes = [
@@ -18,6 +22,42 @@ const routes = [
     path: '/users',
     name: 'UserManagement',
     component: UserManagement,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
+    path: '/menus',
+    name: 'MenuManagement',
+    component: MenuManagement,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
+    path: '/organizations',
+    name: 'OrganizationManagement',
+    component: OrganizationManagement,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
+    path: '/delay-queue',
+    name: 'DelayQueueManagement',
+    component: DelayQueueManagement,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
+    path: '/monitor',
+    name: 'SystemMonitor',
+    component: SystemMonitor,
     meta: {
       requiresAuth: true,
       requiresAdmin: true

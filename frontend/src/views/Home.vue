@@ -8,8 +8,8 @@
     </el-card>
     
     <el-row :gutter="20" class="stats-row">
-      <el-col :span="8">
-        <el-card class="stat-card">
+      <el-col :span="6">
+        <el-card class="stat-card" @click="$router.push('/users')">
           <div class="stat-content">
             <el-icon class="stat-icon"><User /></el-icon>
             <div class="stat-info">
@@ -20,8 +20,8 @@
         </el-card>
       </el-col>
       
-      <el-col :span="8">
-        <el-card class="stat-card">
+      <el-col :span="6">
+        <el-card class="stat-card" @click="$router.push('/delay-queue')">
           <div class="stat-content">
             <el-icon class="stat-icon"><Clock /></el-icon>
             <div class="stat-info">
@@ -32,8 +32,8 @@
         </el-card>
       </el-col>
       
-      <el-col :span="8">
-        <el-card class="stat-card">
+      <el-col :span="6">
+        <el-card class="stat-card" @click="$router.push('/monitor')">
           <div class="stat-content">
             <el-icon class="stat-icon"><Monitor /></el-icon>
             <div class="stat-info">
@@ -43,6 +43,65 @@
           </div>
         </el-card>
       </el-col>
+      
+      <el-col :span="6">
+         <el-card class="stat-card" @click="$router.push('/menus')">
+           <div class="stat-content">
+             <el-icon class="stat-icon"><Menu /></el-icon>
+             <div class="stat-info">
+               <h3>菜单管理</h3>
+               <p>管理系统菜单结构</p>
+             </div>
+           </div>
+         </el-card>
+       </el-col>
+      </el-row>
+      
+      <el-row :gutter="20" class="stats-row">
+       <el-col :span="6">
+         <el-card class="stat-card" @click="$router.push('/organizations')">
+           <div class="stat-content">
+             <el-icon class="stat-icon"><OfficeBuilding /></el-icon>
+             <div class="stat-info">
+               <h3>组织管理</h3>
+               <p>管理组织架构</p>
+             </div>
+           </div>
+         </el-card>
+       </el-col>
+       <el-col :span="6">
+         <el-card class="stat-card">
+           <div class="stat-content">
+             <el-icon class="stat-icon"><DataBoard /></el-icon>
+             <div class="stat-info">
+               <h3>数据统计</h3>
+               <p>查看系统数据统计</p>
+             </div>
+           </div>
+         </el-card>
+       </el-col>
+       <el-col :span="6">
+         <el-card class="stat-card">
+           <div class="stat-content">
+             <el-icon class="stat-icon"><Setting /></el-icon>
+             <div class="stat-info">
+               <h3>系统设置</h3>
+               <p>配置系统参数</p>
+             </div>
+           </div>
+         </el-card>
+       </el-col>
+       <el-col :span="6">
+         <el-card class="stat-card">
+           <div class="stat-content">
+             <el-icon class="stat-icon"><Document /></el-icon>
+             <div class="stat-info">
+               <h3>操作日志</h3>
+               <p>查看系统操作记录</p>
+             </div>
+           </div>
+         </el-card>
+       </el-col>
     </el-row>
     
     <el-card class="feature-card">
@@ -74,7 +133,7 @@
 </template>
 
 <script setup>
-import { User, Clock, Monitor } from '@element-plus/icons-vue'
+import { User, Clock, Monitor, Menu, OfficeBuilding, DataBoard, Setting, Document } from '@element-plus/icons-vue'
 </script>
 
 <style scoped>

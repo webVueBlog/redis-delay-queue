@@ -11,6 +11,16 @@
             v-if="isLoggedIn">
             <el-menu-item index="/">首页</el-menu-item>
             <el-menu-item index="/users" v-if="isAdmin">用户管理</el-menu-item>
+            <el-menu-item index="/menus" v-if="isAdmin">菜单管理</el-menu-item>
+            <el-menu-item index="/organizations" v-if="isAdmin">组织管理</el-menu-item>
+            <el-menu-item index="/delay-queue">
+              <el-icon><Clock /></el-icon>
+              <span>延迟队列</span>
+            </el-menu-item>
+            <el-menu-item index="/monitor" v-if="isAdmin">
+              <el-icon><Monitor /></el-icon>
+              <span>系统监控</span>
+            </el-menu-item>
           </el-menu>
         </div>
         <div class="header-actions">
@@ -320,7 +330,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Monitor, Refresh, DataBoard, User, ArrowDown } from '@element-plus/icons-vue'
+import { Monitor, Refresh, DataBoard, User, ArrowDown, Clock, Grid, Connection, InfoFilled } from '@element-plus/icons-vue'
 import axios from 'axios'
 import request from './utils/request'
 
