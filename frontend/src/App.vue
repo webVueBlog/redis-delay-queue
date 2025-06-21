@@ -10,9 +10,9 @@
             @select="handleMenuSelect"
             v-if="isLoggedIn">
             <el-menu-item index="/">首页</el-menu-item>
-            <el-menu-item index="/users" v-if="isAdmin">用户管理</el-menu-item>
-            <el-menu-item index="/menus" v-if="isAdmin">菜单管理</el-menu-item>
-            <el-menu-item index="/organizations" v-if="isAdmin">组织管理</el-menu-item>
+            <el-menu-item index="/users" >用户管理</el-menu-item>
+            <el-menu-item index="/menus" >菜单管理</el-menu-item>
+            <el-menu-item index="/organizations" >组织管理</el-menu-item>
             <el-menu-item index="/delay-queue">
               <el-icon><Clock /></el-icon>
               <span>延迟队列</span>
@@ -25,19 +25,19 @@
               <el-icon><OfficeBuilding /></el-icon>
               <span>权限组织</span>
             </el-menu-item>
-            <el-menu-item index="/monitor" v-if="isAdmin">
+            <el-menu-item index="/monitor" >
               <el-icon><Monitor /></el-icon>
               <span>系统监控</span>
             </el-menu-item>
-            <el-menu-item index="/data-statistics" v-if="isAdmin">
+            <el-menu-item index="/data-statistics" >
               <el-icon><DataBoard /></el-icon>
               <span>数据统计</span>
             </el-menu-item>
-            <el-menu-item index="/system-settings" v-if="isAdmin">
+            <el-menu-item index="/system-settings" >
               <el-icon><Setting /></el-icon>
               <span>系统设置</span>
             </el-menu-item>
-            <el-menu-item index="/operation-logs" v-if="isAdmin">
+            <el-menu-item index="/operation-logs" >
               <el-icon><Document /></el-icon>
               <span>操作日志</span>
             </el-menu-item>

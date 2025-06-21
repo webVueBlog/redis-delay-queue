@@ -178,7 +178,7 @@
       </el-col>
       
       <!-- 管理功能区域 - 仅管理员可见 -->
-      <el-col :span="isAdmin ? 6 : 12" v-if="isAdmin" class="stats-row">
+      <el-col :span="isAdmin ? 6 : 12" class="stats-row">
         <el-card class="stat-card" @click="$router.push('/users')">
           <div class="stat-content">
             <el-icon class="stat-icon"><User /></el-icon>
@@ -190,7 +190,7 @@
         </el-card>
       </el-col>
       
-      <el-col :span="isAdmin ? 6 : 12" v-if="isAdmin" class="stats-row">
+      <el-col :span="isAdmin ? 6 : 12" class="stats-row">
         <el-card class="stat-card" @click="$router.push('/monitor')">
           <div class="stat-content">
             <el-icon class="stat-icon"><Monitor /></el-icon>
@@ -204,7 +204,7 @@
     </el-row>
       
     <!-- 管理功能第二行 - 仅管理员可见 -->
-    <el-row :gutter="20" class="stats-row" v-if="isAdmin">
+    <el-row :gutter="20" class="stats-row" >
       <el-col :span="6">
          <el-card class="stat-card" @click="$router.push('/menus')">
            <div class="stat-content">
