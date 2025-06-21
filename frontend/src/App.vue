@@ -418,7 +418,7 @@ export default {
       error.value = ''
       
       try {
-        const response = await request.get('/api/tables/mock-columns')
+        const response = await request.get('/api/tables/columns')
         tableData.value = response.data
         
         // 默认展开第一个表
