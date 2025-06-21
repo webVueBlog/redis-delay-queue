@@ -28,8 +28,7 @@ const routes = [
     name: 'UserManagement',
     component: UserManagement,
     meta: {
-      requiresAuth: true,
-      requiresAdmin: true
+      requiresAuth: true
     }
   },
   {
@@ -37,8 +36,7 @@ const routes = [
     name: 'MenuManagement',
     component: MenuManagement,
     meta: {
-      requiresAuth: true,
-      requiresAdmin: true
+      requiresAuth: true
     }
   },
   {
@@ -46,8 +44,7 @@ const routes = [
     name: 'OrganizationManagement',
     component: OrganizationManagement,
     meta: {
-      requiresAuth: true,
-      requiresAdmin: true
+      requiresAuth: true
     }
   },
   {
@@ -63,8 +60,7 @@ const routes = [
     name: 'SystemMonitor',
     component: SystemMonitor,
     meta: {
-      requiresAuth: true,
-      requiresAdmin: true
+      requiresAuth: true
     }
   },
   {
@@ -72,8 +68,7 @@ const routes = [
     name: 'DataStatistics',
     component: DataStatistics,
     meta: {
-      requiresAuth: true,
-      requiresAdmin: true
+      requiresAuth: true
     }
   },
   {
@@ -81,8 +76,7 @@ const routes = [
     name: 'SystemSettings',
     component: SystemSettings,
     meta: {
-      requiresAuth: true,
-      requiresAdmin: true
+      requiresAuth: true
     }
   },
   {
@@ -90,8 +84,7 @@ const routes = [
     name: 'OperationLogs',
     component: OperationLogs,
     meta: {
-      requiresAuth: true,
-      requiresAdmin: true
+      requiresAuth: true
     }
   },
   {
@@ -116,14 +109,10 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
-  const userRole = localStorage.getItem('userRole')
   
   if (to.meta.requiresAuth && !token) {
     // 需要登录但未登录，跳转到登录页
     next('/login')
-  } else if (to.meta.requiresAdmin && userRole !== 'ADMIN') {
-    // 需要管理员权限但不是管理员
-    next('/')
   } else {
     next()
   }

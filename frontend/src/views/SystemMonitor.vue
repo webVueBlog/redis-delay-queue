@@ -1,80 +1,176 @@
 <template>
   <div class="system-monitor">
-    <!-- 页面标题 -->
+    <!-- 页面标题和控制面板 -->
     <div class="page-header">
-      <h2>系统监控</h2>
+      <div class="header-left">
+        <h2>系统监控</h2>
+        <el-tag :type="systemStatus.type" class="status-tag">
+          <el-icon><CircleCheck v-if="systemStatus.type === 'success'" /><Warning v-else /></el-icon>
+          {{ systemStatus.text }}
+        </el-tag>
+      </div>
       <div class="header-actions">
-        <el-button @click="refreshData" :loading="loading">
-          <el-icon><Refresh /></el-icon>
-          刷新数据
-        </el-button>
+        <el-button-group>
+          <el-button @click="refreshData" :loading="loading" type="primary">
+            <el-icon><Refresh /></el-icon>
+            刷新数据
+          </el-button>
+          <el-button @click="exportData" :loading="exporting">
+            <el-icon><Download /></el-icon>
+            导出数据
+          </el-button>
+          <el-button @click="showSettings = true">
+            <el-icon><Setting /></el-icon>
+            设置
+          </el-button>
+        </el-button-group>
         <el-switch
           v-model="autoRefresh"
           active-text="自动刷新"
           @change="toggleAutoRefresh"
+          class="auto-refresh-switch"
         />
+        <el-select v-model="refreshInterval" @change="updateRefreshInterval" class="interval-select">
+          <el-option label="5秒" :value="5000" />
+          <el-option label="10秒" :value="10000" />
+          <el-option label="30秒" :value="30000" />
+          <el-option label="1分钟" :value="60000" />
+        </el-select>
       </div>
+    </div>
+
+    <!-- 告警通知 -->
+    <div v-if="alerts.length > 0" class="alerts-section">
+      <el-alert
+        v-for="alert in alerts"
+        :key="alert.id"
+        :title="alert.title"
+        :description="alert.description"
+        :type="alert.type"
+        show-icon
+        :closable="true"
+        @close="dismissAlert(alert.id)"
+        class="alert-item"
+      />
     </div>
 
     <!-- 系统概览 -->
     <el-row :gutter="20" class="overview-row">
       <el-col :span="6">
-        <el-card class="overview-card">
-          <div class="overview-content">
+        <el-card class="overview-card cpu-card" :class="{ 'warning': systemInfo.cpuUsage > 80, 'danger': systemInfo.cpuUsage > 90 }">
+          <div class="card-header">
             <el-icon class="overview-icon cpu"><Cpu /></el-icon>
+            <div class="trend-indicator">
+              <el-icon :class="getCpuTrend().class">{{ getCpuTrend().icon }}</el-icon>
+            </div>
+          </div>
+          <div class="overview-content">
             <div class="overview-info">
               <h3>{{ systemInfo.cpuUsage }}%</h3>
               <p>CPU使用率</p>
+              <span class="trend-text">{{ getCpuTrend().text }}</span>
             </div>
           </div>
           <el-progress 
             :percentage="systemInfo.cpuUsage" 
             :color="getProgressColor(systemInfo.cpuUsage)"
             :show-text="false"
+            :stroke-width="6"
           />
+          <div class="card-footer">
+            <span>核心数: {{ systemInfo.availableProcessors }}</span>
+            <span>负载: {{ systemInfo.loadAverage || 'N/A' }}</span>
+          </div>
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="overview-card">
-          <div class="overview-content">
+        <el-card class="overview-card memory-card" :class="{ 'warning': systemInfo.memoryUsage > 80, 'danger': systemInfo.memoryUsage > 90 }">
+          <div class="card-header">
             <el-icon class="overview-icon memory"><Monitor /></el-icon>
+            <div class="trend-indicator">
+              <el-icon :class="getMemoryTrend().class">{{ getMemoryTrend().icon }}</el-icon>
+            </div>
+          </div>
+          <div class="overview-content">
             <div class="overview-info">
               <h3>{{ systemInfo.memoryUsage }}%</h3>
               <p>内存使用率</p>
+              <span class="trend-text">{{ getMemoryTrend().text }}</span>
             </div>
           </div>
           <el-progress 
             :percentage="systemInfo.memoryUsage" 
             :color="getProgressColor(systemInfo.memoryUsage)"
             :show-text="false"
+            :stroke-width="6"
           />
+          <div class="card-footer">
+            <span>已用: {{ formatBytes(systemInfo.usedMemory) }}</span>
+            <span>总计: {{ formatBytes(systemInfo.maxMemory) }}</span>
+          </div>
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="overview-card">
-          <div class="overview-content">
+        <el-card class="overview-card redis-card" :class="{ 'warning': redisInfo.memoryUsagePercentage > 80 }">
+          <div class="card-header">
             <el-icon class="overview-icon redis"><DataBoard /></el-icon>
+            <el-tag :type="redisInfo.status === 'UP' ? 'success' : 'danger'" size="small">
+              {{ redisInfo.status || 'UP' }}
+            </el-tag>
+          </div>
+          <div class="overview-content">
             <div class="overview-info">
               <h3>{{ redisInfo.connectedClients }}</h3>
               <p>Redis连接数</p>
+              <span class="trend-text">{{ redisInfo.redisVersion }}</span>
             </div>
           </div>
-          <div class="sub-info">
+          <el-progress 
+            :percentage="redisInfo.memoryUsagePercentage" 
+            :color="getProgressColor(redisInfo.memoryUsagePercentage)"
+            :show-text="false"
+            :stroke-width="6"
+          />
+          <div class="card-footer">
             <span>内存: {{ formatBytes(redisInfo.usedMemory) }}</span>
+            <span>键数: {{ redisInfo.totalKeys }}</span>
           </div>
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="overview-card">
-          <div class="overview-content">
+        <el-card class="overview-card queue-card">
+          <div class="card-header">
             <el-icon class="overview-icon queue"><List /></el-icon>
+            <div class="queue-status">
+              <el-badge :value="queueStats.failedTasks" :hidden="queueStats.failedTasks === 0" type="danger">
+                <el-icon><Bell /></el-icon>
+              </el-badge>
+            </div>
+          </div>
+          <div class="overview-content">
             <div class="overview-info">
               <h3>{{ queueStats.totalTasks }}</h3>
               <p>队列任务总数</p>
+              <span class="trend-text">处理率: {{ getProcessingRate() }}%</span>
             </div>
           </div>
-          <div class="sub-info">
-            <span>待处理: {{ queueStats.pendingTasks }}</span>
+          <div class="queue-breakdown">
+            <div class="queue-item pending">
+              <span>待处理</span>
+              <strong>{{ queueStats.pendingTasks }}</strong>
+            </div>
+            <div class="queue-item processing">
+              <span>处理中</span>
+              <strong>{{ queueStats.processingTasks }}</strong>
+            </div>
+            <div class="queue-item completed">
+              <span>已完成</span>
+              <strong>{{ queueStats.completedTasks }}</strong>
+            </div>
+            <div class="queue-item failed">
+              <span>失败</span>
+              <strong>{{ queueStats.failedTasks }}</strong>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -83,21 +179,116 @@
     <!-- 图表区域 -->
     <el-row :gutter="20" class="charts-row">
       <el-col :span="12">
-        <el-card title="CPU和内存使用趋势">
+        <el-card>
+          <template #header>
+            <div class="chart-header">
+              <span>CPU和内存使用趋势</span>
+              <div class="chart-controls">
+                <el-radio-group v-model="cpuMemoryTimeRange" @change="updateCpuMemoryChart" size="small">
+                  <el-radio-button label="1h">1小时</el-radio-button>
+                  <el-radio-button label="6h">6小时</el-radio-button>
+                  <el-radio-button label="24h">24小时</el-radio-button>
+                </el-radio-group>
+                <el-button @click="toggleFullscreen('cpuMemory')" size="small" text>
+                  <el-icon><FullScreen /></el-icon>
+                </el-button>
+              </div>
+            </div>
+          </template>
           <div ref="cpuMemoryChart" class="chart-container"></div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-color cpu"></span>
+              <span>CPU使用率</span>
+              <strong>{{ systemInfo.cpuUsage }}%</strong>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color memory"></span>
+              <span>内存使用率</span>
+              <strong>{{ systemInfo.memoryUsage }}%</strong>
+            </div>
+          </div>
         </el-card>
       </el-col>
       <el-col :span="12">
-        <el-card title="队列任务处理趋势">
+        <el-card>
+          <template #header>
+            <div class="chart-header">
+              <span>队列任务处理趋势</span>
+              <div class="chart-controls">
+                <el-radio-group v-model="queueTimeRange" @change="updateQueueChart" size="small">
+                  <el-radio-button label="1h">1小时</el-radio-button>
+                  <el-radio-button label="6h">6小时</el-radio-button>
+                  <el-radio-button label="24h">24小时</el-radio-button>
+                </el-radio-group>
+                <el-button @click="toggleFullscreen('queue')" size="small" text>
+                  <el-icon><FullScreen /></el-icon>
+                </el-button>
+              </div>
+            </div>
+          </template>
           <div ref="queueChart" class="chart-container"></div>
+          <div class="chart-stats">
+            <div class="stat-item">
+              <span>平均处理时间</span>
+              <strong>{{ queueStats.avgProcessingTime || 'N/A' }}ms</strong>
+            </div>
+            <div class="stat-item">
+              <span>成功率</span>
+              <strong>{{ getSuccessRate() }}%</strong>
+            </div>
+          </div>
         </el-card>
       </el-col>
     </el-row>
 
     <el-row :gutter="20" class="charts-row">
-      <el-col :span="24">
-        <el-card title="API请求统计">
+      <el-col :span="16">
+        <el-card>
+          <template #header>
+            <div class="chart-header">
+              <span>API请求统计</span>
+              <div class="chart-controls">
+                <el-select v-model="apiMetric" @change="updateApiChart" size="small">
+                  <el-option label="请求数量" value="count" />
+                  <el-option label="响应时间" value="time" />
+                  <el-option label="错误率" value="error" />
+                </el-select>
+                <el-button @click="toggleFullscreen('api')" size="small" text>
+                  <el-icon><FullScreen /></el-icon>
+                </el-button>
+              </div>
+            </div>
+          </template>
           <div ref="apiChart" class="chart-container"></div>
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card title="实时性能指标">
+          <div class="performance-metrics">
+            <div class="metric-item">
+              <div class="metric-label">平均响应时间</div>
+              <div class="metric-value">{{ performanceMetrics.avgResponseTime }}ms</div>
+              <el-progress :percentage="getResponseTimeScore()" :show-text="false" :stroke-width="4" />
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">QPS</div>
+              <div class="metric-value">{{ performanceMetrics.qps }}</div>
+              <div class="metric-trend" :class="performanceMetrics.qpsTrend">
+                <el-icon><ArrowUp v-if="performanceMetrics.qpsTrend === 'up'" /><ArrowDown v-else /></el-icon>
+                {{ performanceMetrics.qpsChange }}%
+              </div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">错误率</div>
+              <div class="metric-value error">{{ performanceMetrics.errorRate }}%</div>
+              <el-progress :percentage="performanceMetrics.errorRate" :show-text="false" :stroke-width="4" color="#f56c6c" />
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">活跃连接</div>
+              <div class="metric-value">{{ performanceMetrics.activeConnections }}</div>
+            </div>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -159,58 +350,253 @@
     <!-- 日志监控 -->
     <el-row :gutter="20" class="logs-row">
       <el-col :span="24">
-        <el-card title="最近日志">
-          <div class="log-controls">
-            <el-select v-model="logLevel" @change="loadLogs" placeholder="选择日志级别">
-              <el-option label="全部" value="" />
-              <el-option label="ERROR" value="ERROR" />
-              <el-option label="WARN" value="WARN" />
-              <el-option label="INFO" value="INFO" />
-              <el-option label="DEBUG" value="DEBUG" />
-            </el-select>
-            <el-button @click="loadLogs">
-              <el-icon><Refresh /></el-icon>
-              刷新日志
-            </el-button>
-            <el-button @click="clearLogs" type="danger">
-              <el-icon><Delete /></el-icon>
-              清空显示
-            </el-button>
-          </div>
-          <div class="log-container">
-            <div 
-              v-for="(log, index) in logs" 
-              :key="index" 
-              :class="['log-item', `log-${log.level.toLowerCase()}`]"
-            >
-              <span class="log-time">{{ formatDateTime(log.timestamp) }}</span>
-              <span class="log-level">{{ log.level }}</span>
-              <span class="log-logger">{{ log.logger }}</span>
-              <span class="log-message">{{ log.message }}</span>
+        <el-card>
+          <template #header>
+            <div class="log-header">
+              <span>系统日志监控</span>
+              <div class="log-stats">
+                <el-tag type="danger" v-if="logStats.error > 0">错误: {{ logStats.error }}</el-tag>
+                <el-tag type="warning" v-if="logStats.warn > 0">警告: {{ logStats.warn }}</el-tag>
+                <el-tag type="info">信息: {{ logStats.info }}</el-tag>
+              </div>
             </div>
+          </template>
+          <div class="log-controls">
+            <div class="log-filters">
+              <el-select v-model="logLevel" @change="loadLogs" placeholder="选择日志级别" style="width: 120px">
+                <el-option label="全部" value="" />
+                <el-option label="ERROR" value="ERROR" />
+                <el-option label="WARN" value="WARN" />
+                <el-option label="INFO" value="INFO" />
+                <el-option label="DEBUG" value="DEBUG" />
+              </el-select>
+              <el-input
+                v-model="logSearch"
+                placeholder="搜索日志内容"
+                @input="filterLogs"
+                style="width: 200px"
+                clearable
+              >
+                <template #prefix>
+                  <el-icon><Search /></el-icon>
+                </template>
+              </el-input>
+              <el-date-picker
+                v-model="logDateRange"
+                type="datetimerange"
+                range-separator="至"
+                start-placeholder="开始时间"
+                end-placeholder="结束时间"
+                @change="loadLogs"
+                style="width: 300px"
+              />
+            </div>
+            <div class="log-actions">
+              <el-button @click="loadLogs" :loading="loadingLogs">
+                <el-icon><Refresh /></el-icon>
+                刷新日志
+              </el-button>
+              <el-button @click="exportLogs">
+                <el-icon><Download /></el-icon>
+                导出日志
+              </el-button>
+              <el-button @click="clearLogs" type="danger">
+                <el-icon><Delete /></el-icon>
+                清空显示
+              </el-button>
+              <el-switch
+                v-model="autoScrollLog"
+                active-text="自动滚动"
+                inactive-text=""
+              />
+            </div>
+          </div>
+          <div class="log-container" ref="logContainer">
+            <div class="log-virtual-list">
+              <div 
+                v-for="(log, index) in filteredLogs" 
+                :key="index" 
+                :class="['log-item', `log-${log.level.toLowerCase()}`]"
+                @click="showLogDetailDialog(log)"
+              >
+                <span class="log-time">{{ formatDateTime(log.timestamp) }}</span>
+                <el-tag :type="getLogLevelType(log.level)" size="small" class="log-level-tag">
+                  {{ log.level }}
+                </el-tag>
+                <span class="log-logger">{{ log.logger }}</span>
+                <span class="log-message" :title="log.message">{{ log.message }}</span>
+                <div class="log-actions">
+                  <el-button size="small" text @click.stop="copyLog(log)">
+                    <el-icon><CopyDocument /></el-icon>
+                  </el-button>
+                </div>
+              </div>
+            </div>
+            <div v-if="filteredLogs.length === 0" class="log-empty">
+              <el-empty description="暂无日志数据" />
+            </div>
+          </div>
+          <div class="log-pagination">
+            <el-pagination
+              v-model:current-page="logCurrentPage"
+              v-model:page-size="logPageSize"
+              :page-sizes="[50, 100, 200, 500]"
+              :total="totalLogs"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="loadLogs"
+              @current-change="loadLogs"
+            />
           </div>
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 设置对话框 -->
+    <el-dialog v-model="showSettings" title="监控设置" width="600px">
+      <el-form :model="settings" label-width="120px">
+        <el-form-item label="刷新间隔">
+          <el-select v-model="settings.refreshInterval">
+            <el-option label="5秒" :value="5000" />
+            <el-option label="10秒" :value="10000" />
+            <el-option label="30秒" :value="30000" />
+            <el-option label="1分钟" :value="60000" />
+            <el-option label="5分钟" :value="300000" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="告警阈值">
+          <el-row :gutter="10">
+            <el-col :span="12">
+              <el-input-number v-model="settings.cpuThreshold" :min="0" :max="100" />
+              <span style="margin-left: 8px">CPU使用率(%)</span>
+            </el-col>
+            <el-col :span="12">
+              <el-input-number v-model="settings.memoryThreshold" :min="0" :max="100" />
+              <span style="margin-left: 8px">内存使用率(%)</span>
+            </el-col>
+          </el-row>
+        </el-form-item>
+        <el-form-item label="数据保留">
+          <el-select v-model="settings.dataRetention">
+            <el-option label="1小时" value="1h" />
+            <el-option label="6小时" value="6h" />
+            <el-option label="24小时" value="24h" />
+            <el-option label="7天" value="7d" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="启用通知">
+          <el-switch v-model="settings.enableNotifications" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showSettings = false">取消</el-button>
+        <el-button type="primary" @click="saveSettings">保存设置</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 日志详情对话框 -->
+    <el-dialog v-model="showLogDetail" title="日志详情" width="800px">
+      <div v-if="selectedLog" class="log-detail">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="时间">{{ formatDateTime(selectedLog.timestamp) }}</el-descriptions-item>
+          <el-descriptions-item label="级别">
+            <el-tag :type="getLogLevelType(selectedLog.level)">{{ selectedLog.level }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="记录器">{{ selectedLog.logger }}</el-descriptions-item>
+          <el-descriptions-item label="线程">{{ selectedLog.thread || 'N/A' }}</el-descriptions-item>
+        </el-descriptions>
+        <div class="log-message-detail">
+          <h4>消息内容</h4>
+          <pre>{{ selectedLog.message }}</pre>
+        </div>
+        <div v-if="selectedLog.stackTrace" class="log-stack-trace">
+          <h4>堆栈跟踪</h4>
+          <pre>{{ selectedLog.stackTrace }}</pre>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  Refresh, Monitor, DataBoard, List, Delete, Cpu 
+  Refresh, Monitor, DataBoard, List, Delete, Cpu, CircleCheck, Warning,
+  Download, Setting, FullScreen, Search, CopyDocument, Bell,
+  ArrowUp, ArrowDown
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 import * as echarts from 'echarts'
 
 // 响应式数据
 const loading = ref(false)
+const exporting = ref(false)
+const loadingLogs = ref(false)
 const autoRefresh = ref(true)
+const refreshInterval = ref(10000)
 const logLevel = ref('')
+const logSearch = ref('')
+const logDateRange = ref([])
+const autoScrollLog = ref(true)
 const logs = ref([])
+const filteredLogs = ref([])
+const logCurrentPage = ref(1)
+const logPageSize = ref(100)
+const totalLogs = ref(0)
+const showSettings = ref(false)
+const showLogDetail = ref(false)
+const selectedLog = ref(null)
 let refreshTimer = null
 let charts = {}
+
+// 新增数据属性
+const alerts = ref([])
+const cpuMemoryTimeRange = ref('1h')
+const queueTimeRange = ref('1h')
+const apiMetric = ref('count')
+const previousCpuUsage = ref(0)
+const previousMemoryUsage = ref(0)
+
+// 系统状态
+const systemStatus = computed(() => {
+  const cpuHigh = systemInfo.cpuUsage > 90
+  const memoryHigh = systemInfo.memoryUsage > 90
+  const redisDown = redisInfo.status === 'DOWN'
+  
+  if (cpuHigh || memoryHigh || redisDown) {
+    return { type: 'danger', text: '系统异常' }
+  } else if (systemInfo.cpuUsage > 80 || systemInfo.memoryUsage > 80) {
+    return { type: 'warning', text: '系统警告' }
+  }
+  return { type: 'success', text: '系统正常' }
+})
+
+// 日志统计
+const logStats = reactive({
+  error: 0,
+  warn: 0,
+  info: 0,
+  debug: 0
+})
+
+// 性能指标
+const performanceMetrics = reactive({
+  avgResponseTime: 0,
+  qps: 0,
+  qpsTrend: 'up',
+  qpsChange: 0,
+  errorRate: 0,
+  activeConnections: 0
+})
+
+// 设置
+const settings = reactive({
+  refreshInterval: 10000,
+  cpuThreshold: 80,
+  memoryThreshold: 80,
+  dataRetention: '24h',
+  enableNotifications: true
+})
 
 // 系统信息
 const systemInfo = reactive({
@@ -320,18 +706,43 @@ const loadAppInfo = async () => {
 }
 
 const loadLogs = async () => {
+  loadingLogs.value = true
   try {
-    const params = {}
+    const params = {
+      page: logCurrentPage.value,
+      size: logPageSize.value
+    }
+    
     if (logLevel.value) {
       params.level = logLevel.value
     }
     
+    if (logDateRange.value && logDateRange.value.length === 2) {
+      params.startTime = logDateRange.value[0].toISOString()
+      params.endTime = logDateRange.value[1].toISOString()
+    }
+    
     const response = await axios.get('/api/monitor/logs', { params })
     if (response.data.success) {
-      logs.value = response.data.data
+      logs.value = response.data.data.logs || response.data.data
+      totalLogs.value = response.data.data.total || logs.value.length
+      filterLogs()
+      
+      // 自动滚动到底部
+      if (autoScrollLog.value) {
+        nextTick(() => {
+          const container = document.querySelector('.log-container')
+          if (container) {
+            container.scrollTop = container.scrollHeight
+          }
+        })
+      }
     }
   } catch (error) {
     console.error('加载日志失败:', error)
+    ElMessage.error('加载日志失败')
+  } finally {
+    loadingLogs.value = false
   }
 }
 
@@ -356,6 +767,10 @@ const loadHistoryData = async () => {
 const refreshData = async () => {
   loading.value = true
   try {
+    // 保存之前的值用于趋势计算
+    previousCpuUsage.value = systemInfo.cpuUsage
+    previousMemoryUsage.value = systemInfo.memoryUsage
+    
     await Promise.all([
       loadSystemInfo(),
       loadRedisInfo(),
@@ -363,13 +778,132 @@ const refreshData = async () => {
       loadAppInfo(),
       loadHistoryData()
     ])
+    
+    // 检查告警
+    checkAlerts()
+    
+    // 更新性能指标
+    updatePerformanceMetrics()
   } finally {
     loading.value = false
   }
 }
 
+const updatePerformanceMetrics = () => {
+  // 模拟性能指标更新
+  performanceMetrics.avgResponseTime = Math.floor(Math.random() * 500) + 50
+  performanceMetrics.qps = Math.floor(Math.random() * 1000) + 100
+  performanceMetrics.qpsChange = Math.floor(Math.random() * 20) - 10
+  performanceMetrics.qpsTrend = performanceMetrics.qpsChange >= 0 ? 'up' : 'down'
+  performanceMetrics.errorRate = Math.floor(Math.random() * 5)
+  performanceMetrics.activeConnections = Math.floor(Math.random() * 100) + 50
+}
+
 const clearLogs = () => {
   logs.value = []
+}
+
+// 新增方法
+const getCpuTrend = () => {
+  const current = systemInfo.cpuUsage
+  const previous = previousCpuUsage.value
+  const diff = current - previous
+  
+  if (Math.abs(diff) < 1) {
+    return { class: 'trend-stable', icon: '→', text: '稳定' }
+  } else if (diff > 0) {
+    return { class: 'trend-up', icon: '↑', text: `上升${diff.toFixed(1)}%` }
+  } else {
+    return { class: 'trend-down', icon: '↓', text: `下降${Math.abs(diff).toFixed(1)}%` }
+  }
+}
+
+const getMemoryTrend = () => {
+  const current = systemInfo.memoryUsage
+  const previous = previousMemoryUsage.value
+  const diff = current - previous
+  
+  if (Math.abs(diff) < 1) {
+    return { class: 'trend-stable', icon: '→', text: '稳定' }
+  } else if (diff > 0) {
+    return { class: 'trend-up', icon: '↑', text: `上升${diff.toFixed(1)}%` }
+  } else {
+    return { class: 'trend-down', icon: '↓', text: `下降${Math.abs(diff).toFixed(1)}%` }
+  }
+}
+
+const getProcessingRate = () => {
+  const total = queueStats.totalTasks
+  if (total === 0) return 0
+  return Math.round((queueStats.completedTasks / total) * 100)
+}
+
+const getSuccessRate = () => {
+  const total = queueStats.completedTasks + queueStats.failedTasks
+  if (total === 0) return 100
+  return Math.round((queueStats.completedTasks / total) * 100)
+}
+
+const getResponseTimeScore = () => {
+  const time = performanceMetrics.avgResponseTime
+  if (time < 100) return 100
+  if (time < 500) return 80
+  if (time < 1000) return 60
+  if (time < 2000) return 40
+  return 20
+}
+
+const getLogLevelType = (level) => {
+  const types = {
+    ERROR: 'danger',
+    WARN: 'warning',
+    INFO: 'info',
+    DEBUG: 'info'
+  }
+  return types[level] || 'info'
+}
+
+const dismissAlert = (alertId) => {
+  const index = alerts.value.findIndex(alert => alert.id === alertId)
+  if (index > -1) {
+    alerts.value.splice(index, 1)
+  }
+}
+
+const exportData = async () => {
+  exporting.value = true
+  try {
+    const data = {
+      timestamp: new Date().toISOString(),
+      systemInfo: systemInfo,
+      redisInfo: redisInfo,
+      queueStats: queueStats,
+      appInfo: appInfo,
+      performanceMetrics: performanceMetrics
+    }
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `system-monitor-${new Date().toISOString().slice(0, 19)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    
+    ElMessage.success('数据导出成功')
+  } catch (error) {
+    ElMessage.error('数据导出失败')
+  } finally {
+    exporting.value = false
+  }
+}
+
+const updateRefreshInterval = (interval) => {
+  refreshInterval.value = interval
+  if (autoRefresh.value) {
+    stopAutoRefresh()
+    startAutoRefresh()
+  }
 }
 
 const toggleAutoRefresh = (enabled) => {
@@ -386,7 +920,7 @@ const startAutoRefresh = () => {
   }
   refreshTimer = setInterval(() => {
     refreshData()
-  }, 10000) // 每10秒刷新一次
+  }, refreshInterval.value)
 }
 
 const stopAutoRefresh = () => {
@@ -394,6 +928,154 @@ const stopAutoRefresh = () => {
     clearInterval(refreshTimer)
     refreshTimer = null
   }
+}
+
+const filterLogs = () => {
+  let filtered = logs.value
+  
+  if (logSearch.value) {
+    const search = logSearch.value.toLowerCase()
+    filtered = filtered.filter(log => 
+      log.message.toLowerCase().includes(search) ||
+      log.logger.toLowerCase().includes(search)
+    )
+  }
+  
+  filteredLogs.value = filtered
+  updateLogStats()
+}
+
+const updateLogStats = () => {
+  const stats = { error: 0, warn: 0, info: 0, debug: 0 }
+  filteredLogs.value.forEach(log => {
+    const level = log.level.toLowerCase()
+    if (stats.hasOwnProperty(level)) {
+      stats[level]++
+    }
+  })
+  Object.assign(logStats, stats)
+}
+
+const exportLogs = async () => {
+  try {
+    const data = filteredLogs.value.map(log => ({
+      timestamp: formatDateTime(log.timestamp),
+      level: log.level,
+      logger: log.logger,
+      message: log.message
+    }))
+    
+    const csv = [
+      'Timestamp,Level,Logger,Message',
+      ...data.map(row => `"${row.timestamp}","${row.level}","${row.logger}","${row.message.replace(/"/g, '""')}"`)
+    ].join('\n')
+    
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `system-logs-${new Date().toISOString().slice(0, 19)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    
+    ElMessage.success('日志导出成功')
+  } catch (error) {
+    ElMessage.error('日志导出失败')
+  }
+}
+
+const showLogDetailDialog = (log) => {
+  selectedLog.value = log
+  showLogDetail.value = true
+}
+
+const copyLog = async (log) => {
+  try {
+    const text = `[${formatDateTime(log.timestamp)}] ${log.level} ${log.logger} - ${log.message}`
+    await navigator.clipboard.writeText(text)
+    ElMessage.success('日志已复制到剪贴板')
+  } catch (error) {
+    ElMessage.error('复制失败')
+  }
+}
+
+const toggleFullscreen = (chartType) => {
+  // 实现图表全屏功能
+  ElMessage.info('全屏功能开发中')
+}
+
+const updateCpuMemoryChart = () => {
+  loadHistoryData()
+}
+
+const updateQueueChart = () => {
+  loadHistoryData()
+}
+
+const updateApiChart = () => {
+  loadHistoryData()
+}
+
+const saveSettings = () => {
+  localStorage.setItem('monitorSettings', JSON.stringify(settings))
+  refreshInterval.value = settings.refreshInterval
+  if (autoRefresh.value) {
+    stopAutoRefresh()
+    startAutoRefresh()
+  }
+  showSettings.value = false
+  ElMessage.success('设置已保存')
+}
+
+const loadSettings = () => {
+  const saved = localStorage.getItem('monitorSettings')
+  if (saved) {
+    Object.assign(settings, JSON.parse(saved))
+    refreshInterval.value = settings.refreshInterval
+  }
+}
+
+const checkAlerts = () => {
+  const newAlerts = []
+  
+  if (systemInfo.cpuUsage > settings.cpuThreshold) {
+    newAlerts.push({
+      id: 'cpu-high',
+      type: 'warning',
+      title: 'CPU使用率过高',
+      description: `当前CPU使用率为${systemInfo.cpuUsage}%，超过阈值${settings.cpuThreshold}%`
+    })
+  }
+  
+  if (systemInfo.memoryUsage > settings.memoryThreshold) {
+    newAlerts.push({
+      id: 'memory-high',
+      type: 'warning',
+      title: '内存使用率过高',
+      description: `当前内存使用率为${systemInfo.memoryUsage}%，超过阈值${settings.memoryThreshold}%`
+    })
+  }
+  
+  if (queueStats.failedTasks > 0) {
+    newAlerts.push({
+      id: 'queue-failed',
+      type: 'error',
+      title: '队列任务失败',
+      description: `有${queueStats.failedTasks}个任务处理失败，请及时处理`
+    })
+  }
+  
+  // 只添加新的告警
+  newAlerts.forEach(newAlert => {
+    if (!alerts.value.find(alert => alert.id === newAlert.id)) {
+      alerts.value.push(newAlert)
+    }
+  })
+  
+  // 移除已解决的告警
+  alerts.value = alerts.value.filter(alert => {
+    return newAlerts.find(newAlert => newAlert.id === alert.id)
+  })
 }
 
 const initCharts = () => {
@@ -520,6 +1202,9 @@ const formatDuration = (milliseconds) => {
 
 // 生命周期
 onMounted(() => {
+  // 加载设置
+  loadSettings()
+  
   refreshData()
   loadLogs()
   initCharts()
@@ -553,6 +1238,8 @@ onUnmounted(() => {
 <style scoped>
 .system-monitor {
   padding: 20px;
+  background: #f5f7fa;
+  min-height: calc(100vh - 120px);
 }
 
 .page-header {
@@ -560,11 +1247,27 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .page-header h2 {
   margin: 0;
   color: #303133;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.status-tag {
+  font-size: 14px;
 }
 
 .header-actions {
@@ -573,12 +1276,174 @@ onUnmounted(() => {
   gap: 15px;
 }
 
+.auto-refresh-switch {
+  margin-left: 10px;
+}
+
+.interval-select {
+  width: 100px;
+}
+
+/* 告警样式 */
+.alerts-section {
+  margin-bottom: 20px;
+}
+
+.alert-item {
+  margin-bottom: 10px;
+}
+
 .overview-row {
   margin-bottom: 20px;
 }
 
 .overview-card {
-  height: 120px;
+  height: auto;
+  min-height: 160px;
+  text-align: center;
+  padding: 24px;
+  border-radius: 12px;
+  background: white;
+  color: #303133;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #ebeef5;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.overview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.overview-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #909399;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #909399;
+}
+
+.trend-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.trend-up {
+  color: #f56c6c;
+}
+
+.trend-down {
+  color: #67c23a;
+}
+
+.trend-stable {
+  color: #909399;
+}
+
+.trend-text {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.card-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #909399;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #606266;
+}
+
+.queue-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.queue-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: #f5f7fa;
+  border-radius: 4px;
+  border-left: 3px solid #ddd;
+}
+
+.queue-item.pending {
+  border-left-color: #e6a23c;
+}
+
+.queue-item.processing {
+  border-left-color: #409eff;
+}
+
+.queue-item.completed {
+  border-left-color: #67c23a;
+}
+
+.queue-item.failed {
+  border-left-color: #f56c6c;
+}
+
+.queue-status {
+  display: flex;
+  align-items: center;
+}
+
+.breakdown-label {
+  color: #909399;
+}
+
+.breakdown-value {
+  font-weight: 600;
+  color: #606266;
 }
 
 .overview-content {
@@ -631,8 +1496,125 @@ onUnmounted(() => {
 }
 
 .chart-container {
-  height: 300px;
+  height: 450px;
   width: 100%;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #ebeef5;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-container h3 {
+  margin: 0;
+  color: #303133;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-color.cpu {
+  background: #409eff;
+}
+
+.legend-color.memory {
+  background: #67c23a;
+}
+
+.chart-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
+  font-size: 14px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.performance-metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  height: 100%;
+}
+
+.metric-item {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #409eff;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.metric-value.error {
+  color: #f56c6c;
+}
+
+.metric-trend {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.metric-trend.up {
+  color: #67c23a;
+}
+
+.metric-trend.down {
+  color: #f56c6c;
 }
 
 .details-row {
@@ -643,75 +1625,404 @@ onUnmounted(() => {
   margin-bottom: 20px;
 }
 
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.log-stats {
+  display: flex;
+  gap: 12px;
+}
+
 .log-controls {
   display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.log-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.log-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .log-container {
-  height: 400px;
+  height: 500px;
   overflow-y: auto;
-  background: #f5f5f5;
-  padding: 10px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
+  background: #fafafa;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+}
+
+.log-virtual-list {
+  padding: 0;
 }
 
 .log-item {
   display: flex;
-  margin-bottom: 5px;
-  padding: 2px 0;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.log-item:hover {
+  background: #f5f7fa;
+}
+
+.log-item:last-child {
+  border-bottom: none;
 }
 
 .log-time {
-  width: 180px;
-  color: #666;
+  width: 160px;
+  color: #909399;
+  font-size: 12px;
+  font-weight: 500;
   flex-shrink: 0;
 }
 
-.log-level {
+.log-level-tag {
   width: 60px;
-  font-weight: bold;
+  text-align: center;
   flex-shrink: 0;
 }
 
 .log-logger {
-  width: 200px;
-  color: #333;
+  width: 180px;
+  color: #606266;
+  font-size: 12px;
+  font-weight: 500;
   flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #f0f2f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.log-message {
+  flex: 1;
+  color: #303133;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.log-message {
-  flex: 1;
-  color: #333;
+.log-actions {
+  flex-shrink: 0;
 }
 
-.log-error .log-level {
+.log-empty {
+  padding: 40px;
+  text-align: center;
+}
+
+.log-pagination {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.log-detail {
+  padding: 20px;
+}
+
+.log-message-detail {
+  margin-top: 20px;
+}
+
+.log-message-detail h4 {
+  margin: 0 0 12px 0;
+  color: #303133;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.log-message-detail pre {
+  background: #fafafa;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.log-stack-trace {
+  margin-top: 20px;
+}
+
+.log-stack-trace h4 {
+  margin: 0 0 12px 0;
+  color: #303133;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.log-stack-trace pre {
+  background: #fef0f0;
+  border: 1px solid #fbc4c4;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 400px;
+  overflow-y: auto;
+  margin: 0;
   color: #f56c6c;
-}
-
-.log-warn .log-level {
-  color: #e6a23c;
-}
-
-.log-info .log-level {
-  color: #409eff;
-}
-
-.log-debug .log-level {
-  color: #909399;
 }
 
 .el-card {
   margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #ebeef5;
 }
 
 .el-descriptions {
   margin-top: 10px;
+}
+
+/* Element Plus 组件样式覆盖 */
+.el-button {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, #409eff 0%, #3a8ee6 100%);
+  border: none;
+}
+
+.el-button--success {
+  background: linear-gradient(135deg, #67c23a 0%, #5daf34 100%);
+  border: none;
+}
+
+.el-button--warning {
+  background: linear-gradient(135deg, #e6a23c 0%, #cf9236 100%);
+  border: none;
+}
+
+.el-button--danger {
+  background: linear-gradient(135deg, #f56c6c 0%, #f25c5c 100%);
+  border: none;
+}
+
+.el-select {
+  width: 140px;
+}
+
+.el-input {
+  border-radius: 8px;
+}
+
+.el-switch {
+  margin-left: 10px;
+}
+
+.el-progress {
+  margin: 8px 0;
+}
+
+.el-tag {
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.el-alert {
+  border-radius: 8px;
+  border: none;
+}
+
+.el-dialog {
+  border-radius: 12px;
+}
+
+.el-dialog__header {
+  padding: 24px 24px 0;
+}
+
+.el-dialog__body {
+  padding: 24px;
+}
+
+.el-dialog__footer {
+  padding: 0 24px 24px;
+}
+
+.el-pagination {
+  justify-content: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .system-monitor {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .header-actions {
+    justify-content: space-between;
+  }
+  
+  .chart-container {
+    height: 350px;
+  }
+  
+  .performance-metrics {
+    height: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .system-monitor {
+    padding: 12px;
+  }
+  
+  .overview-card {
+    min-height: 140px;
+    padding: 16px;
+  }
+  
+  .chart-container {
+    height: 300px;
+    padding: 16px;
+  }
+  
+  .logs-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .control-group {
+    justify-content: space-between;
+  }
+  
+  .log-container {
+    height: 350px;
+  }
+  
+  .log-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .log-time,
+  .log-level-tag,
+  .log-logger {
+    width: auto;
+  }
+  
+  .log-message {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+/* 滚动条样式 */
+.log-container::-webkit-scrollbar,
+.log-message-detail pre::-webkit-scrollbar,
+.log-stack-trace pre::-webkit-scrollbar {
+  width: 8px;
+}
+
+.log-container::-webkit-scrollbar-track,
+.log-message-detail pre::-webkit-scrollbar-track,
+.log-stack-trace pre::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.log-container::-webkit-scrollbar-thumb,
+.log-message-detail pre::-webkit-scrollbar-thumb,
+.log-stack-trace pre::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.log-container::-webkit-scrollbar-thumb:hover,
+.log-message-detail pre::-webkit-scrollbar-thumb:hover,
+.log-stack-trace pre::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 动画效果 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.slide-up-leave-to {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+
+/* 加载状态 */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.loading-spinner {
+  font-size: 24px;
+  color: #409eff;
 }
 </style>

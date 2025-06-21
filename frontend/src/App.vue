@@ -1,82 +1,171 @@
 <template>
   <div id="app">
-    <el-container>
-      <el-header>
-        <h1>Redis延迟队列管理系统</h1>
-        <div class="header-nav">
-          <el-menu 
-            mode="horizontal" 
-            :default-active="activeIndex"
-            @select="handleMenuSelect"
-            v-if="isLoggedIn">
-            <el-menu-item index="/">首页</el-menu-item>
-            <el-menu-item index="/users" >用户管理</el-menu-item>
-            <el-menu-item index="/menus" >菜单管理</el-menu-item>
-            <el-menu-item index="/organizations" >组织管理</el-menu-item>
-            <el-menu-item index="/delay-queue">
-              <el-icon><Clock /></el-icon>
-              <span>延迟队列</span>
-            </el-menu-item>
-            <el-menu-item index="/my-tasks">
-              <el-icon><DataBoard /></el-icon>
-              <span>我的任务</span>
-            </el-menu-item>
-            <el-menu-item index="/user-permission-organizations">
-              <el-icon><OfficeBuilding /></el-icon>
-              <span>权限组织</span>
-            </el-menu-item>
-            <el-menu-item index="/monitor" >
-              <el-icon><Monitor /></el-icon>
-              <span>系统监控</span>
-            </el-menu-item>
-            <el-menu-item index="/data-statistics" >
-              <el-icon><DataBoard /></el-icon>
-              <span>数据统计</span>
-            </el-menu-item>
-            <el-menu-item index="/system-settings" >
-              <el-icon><Setting /></el-icon>
-              <span>系统设置</span>
-            </el-menu-item>
-            <el-menu-item index="/operation-logs" >
-              <el-icon><Document /></el-icon>
-              <span>操作日志</span>
-            </el-menu-item>
-          </el-menu>
+    <!-- 登录页面 -->
+    <div v-if="!isLoggedIn" class="login-container">
+      <router-view />
+    </div>
+    
+    <!-- 后台管理布局 -->
+    <el-container v-else class="admin-layout">
+      <!-- 顶部导航栏 -->
+      <el-header class="admin-header">
+        <div class="header-left">
+          <el-button 
+            class="sidebar-toggle" 
+            @click="toggleSidebar" 
+            :icon="isCollapse ? Expand : Fold"
+            text
+          />
+          <h1 class="system-title">Redis延迟队列管理系统</h1>
         </div>
-        <div class="header-actions">
-          <el-button type="primary" @click="openHealthDialog">
+        
+        <div class="header-right">
+          <el-button type="primary" @click="openHealthDialog" size="small">
             <el-icon><Monitor /></el-icon>
             系统健康检查
           </el-button>
-          <div class="user-info" v-if="isLoggedIn">
+          
+          <div class="user-info">
             <el-dropdown @command="handleUserCommand">
               <span class="user-name">
-                {{ username }}
-                <el-icon><ArrowDown /></el-icon>
+                <el-avatar :size="32" :src="userAvatar">
+                  <el-icon><User /></el-icon>
+                </el-avatar>
+                <span class="username">{{ username }}</span>
+                <el-tag v-if="isAdmin" type="warning" size="small">管理员</el-tag>
+                <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item command="profile">个人信息</el-dropdown-item>
-                  <el-dropdown-item command="changePassword">修改密码</el-dropdown-item>
-                  <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+                  <el-dropdown-item command="profile">
+                    <el-icon><User /></el-icon>
+                    个人信息
+                  </el-dropdown-item>
+                  <el-dropdown-item command="changePassword">
+                    <el-icon><Lock /></el-icon>
+                    修改密码
+                  </el-dropdown-item>
+                  <el-dropdown-item command="logout" divided>
+                    <el-icon><SwitchButton /></el-icon>
+                    退出登录
+                  </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
           </div>
-          <el-button v-else @click="$router.push('/login')">
-            <el-icon><User /></el-icon>
-            登录
-          </el-button>
-          <el-button type="primary" @click="fetchData" :loading="loading">
+          
+          <el-button @click="fetchData" :loading="loading" size="small">
             <el-icon><Refresh /></el-icon>
-            刷新数据
+            刷新
           </el-button>
         </div>
       </el-header>
       
-      <el-main>
-        <router-view />
-      </el-main>
+      <!-- 主体容器 -->
+      <el-container class="main-container">
+        <!-- 左侧菜单栏 -->
+        <el-aside class="admin-sidebar" :width="sidebarWidth">
+          <el-scrollbar>
+            <el-menu
+              :default-active="activeIndex"
+              :collapse="isCollapse"
+              :unique-opened="true"
+              @select="handleMenuSelect"
+              class="sidebar-menu"
+            >
+              <!-- 首页 -->
+              <el-menu-item index="/">
+                <el-icon><HomeFilled /></el-icon>
+                <template #title>首页</template>
+              </el-menu-item>
+              
+              <!-- 业务功能 -->
+              <el-sub-menu index="business">
+                <template #title>
+                  <el-icon><Operation /></el-icon>
+                  <span>业务功能</span>
+                </template>
+                <el-menu-item index="/delay-queue">
+                  <el-icon><Clock /></el-icon>
+                  <template #title>延迟队列</template>
+                </el-menu-item>
+                <el-menu-item index="/my-tasks">
+                  <el-icon><DataBoard /></el-icon>
+                  <template #title>我的任务</template>
+                </el-menu-item>
+                <el-menu-item index="/user-permission-organizations">
+                  <el-icon><OfficeBuilding /></el-icon>
+                  <template #title>权限组织</template>
+                </el-menu-item>
+              </el-sub-menu>
+              
+              <!-- 系统管理 -->
+              <el-sub-menu index="system">
+                <template #title>
+                  <el-icon><Setting /></el-icon>
+                  <span>系统管理</span>
+                </template>
+                <el-menu-item index="/users">
+                  <el-icon><User /></el-icon>
+                  <template #title>用户管理</template>
+                </el-menu-item>
+                <el-menu-item index="/menus">
+                  <el-icon><Menu /></el-icon>
+                  <template #title>菜单管理</template>
+                </el-menu-item>
+                <el-menu-item index="/organizations">
+                  <el-icon><OfficeBuilding /></el-icon>
+                  <template #title>组织管理</template>
+                </el-menu-item>
+              </el-sub-menu>
+              
+              <!-- 监控统计 -->
+              <el-sub-menu index="monitor">
+                <template #title>
+                  <el-icon><Monitor /></el-icon>
+                  <span>监控统计</span>
+                </template>
+                <el-menu-item index="/monitor">
+                  <el-icon><Monitor /></el-icon>
+                  <template #title>系统监控</template>
+                </el-menu-item>
+                <el-menu-item index="/data-statistics">
+                  <el-icon><DataBoard /></el-icon>
+                  <template #title>数据统计</template>
+                </el-menu-item>
+                <el-menu-item index="/operation-logs">
+                  <el-icon><Document /></el-icon>
+                  <template #title>操作日志</template>
+                </el-menu-item>
+              </el-sub-menu>
+              
+              <!-- 系统设置 -->
+              <el-menu-item index="/system-settings">
+                <el-icon><Tools /></el-icon>
+                <template #title>系统设置</template>
+              </el-menu-item>
+            </el-menu>
+          </el-scrollbar>
+        </el-aside>
+        
+        <!-- 主内容区域 -->
+        <el-main class="admin-main">
+          <!-- 面包屑导航 -->
+          <div class="breadcrumb-container">
+            <el-breadcrumb separator="/">
+              <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+              <el-breadcrumb-item v-for="item in breadcrumbItems" :key="item.path" :to="item.path">
+                {{ item.title }}
+              </el-breadcrumb-item>
+            </el-breadcrumb>
+          </div>
+          
+          <!-- 页面内容 -->
+          <div class="page-content">
+            <router-view />
+          </div>
+        </el-main>
+      </el-container>
     </el-container>
 
     <!-- 健康检查对话框 -->
@@ -227,21 +316,32 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Monitor, Refresh, DataBoard, User, ArrowDown, Clock, Grid, Connection, InfoFilled, Setting, Document, OfficeBuilding } from '@element-plus/icons-vue'
+import { 
+  Monitor, Refresh, DataBoard, User, ArrowDown, Clock, Grid, Connection, 
+  InfoFilled, Setting, Document, OfficeBuilding, HomeFilled, Operation,
+  Menu, Tools, Lock, SwitchButton, Fold, Expand
+} from '@element-plus/icons-vue'
 import request from './utils/request'
 
 // 路由
 const router = useRouter()
 const route = useRoute()
 
-    
 // 用户状态
 const username = ref(localStorage.getItem('username') || '')
 const userRole = ref(localStorage.getItem('userRole') || '')
 const userId = ref(localStorage.getItem('userId') || '')
+const userAvatar = ref('')
+
+// 侧边栏状态
+const isCollapse = ref(false)
+const sidebarWidth = computed(() => isCollapse.value ? '64px' : '200px')
+
+// 面包屑导航
+const breadcrumbItems = ref([])
     
 // 健康检查相关状态
 const showHealthDialog = ref(false)
@@ -309,10 +409,40 @@ const fetchData = async () => {
   }
 }
 
+// 侧边栏切换
+const toggleSidebar = () => {
+  isCollapse.value = !isCollapse.value
+}
+
 // 菜单选择处理
 const handleMenuSelect = (index) => {
   router.push(index)
 }
+
+// 更新面包屑导航
+const updateBreadcrumb = () => {
+  const path = route.path
+  const breadcrumbMap = {
+    '/': [],
+    '/delay-queue': [{ title: '业务功能', path: '' }, { title: '延迟队列', path: '/delay-queue' }],
+    '/my-tasks': [{ title: '业务功能', path: '' }, { title: '我的任务', path: '/my-tasks' }],
+    '/user-permission-organizations': [{ title: '业务功能', path: '' }, { title: '权限组织', path: '/user-permission-organizations' }],
+    '/users': [{ title: '系统管理', path: '' }, { title: '用户管理', path: '/users' }],
+    '/menus': [{ title: '系统管理', path: '' }, { title: '菜单管理', path: '/menus' }],
+    '/organizations': [{ title: '系统管理', path: '' }, { title: '组织管理', path: '/organizations' }],
+    '/monitor': [{ title: '监控统计', path: '' }, { title: '系统监控', path: '/monitor' }],
+    '/data-statistics': [{ title: '监控统计', path: '' }, { title: '数据统计', path: '/data-statistics' }],
+    '/operation-logs': [{ title: '监控统计', path: '' }, { title: '操作日志', path: '/operation-logs' }],
+    '/system-settings': [{ title: '系统设置', path: '/system-settings' }]
+  }
+  
+  breadcrumbItems.value = breadcrumbMap[path] || []
+}
+
+// 监听路由变化更新面包屑
+watch(() => route.path, () => {
+  updateBreadcrumb()
+}, { immediate: true })
     
 // 用户命令处理
 const handleUserCommand = (command) => {
@@ -454,57 +584,230 @@ const handleHealthDialogClose = () => {
 <style scoped>
 #app {
   font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.el-header {
-  background-color: #545c64;
+/* 登录页面样式 */
+.login-container {
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 后台管理布局 */
+.admin-layout {
+  height: 100vh;
+}
+
+/* 顶部导航栏 */
+.admin-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
   height: 60px;
 }
 
-.el-header h1 {
-  margin: 0;
-  font-size: 24px;
-  flex-shrink: 0;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-.header-nav {
-  flex: 1;
-  margin: 0 20px;
+.sidebar-toggle {
+  color: #fff !important;
+  font-size: 18px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
-.header-nav :deep(.el-menu) {
-  background-color: transparent;
-  border-bottom: none;
-}
-
-.header-nav :deep(.el-menu-item) {
-  color: #fff;
-  border-bottom: 2px solid transparent;
-}
-
-.header-nav :deep(.el-menu-item:hover) {
+.sidebar-toggle:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+.system-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
   color: #fff;
 }
 
-.header-nav :deep(.el-menu-item.is-active) {
-  background-color: transparent;
-  border-bottom-color: #409eff;
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* 主体容器 */
+.main-container {
+  height: calc(100vh - 60px);
+}
+
+/* 左侧菜单栏 */
+.admin-sidebar {
+  background: #fff;
+  border-right: 1px solid #e4e7ed;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar-menu {
+  border-right: none;
+  height: 100%;
+}
+
+.sidebar-menu :deep(.el-menu-item),
+.sidebar-menu :deep(.el-sub-menu__title) {
+  height: 50px;
+  line-height: 50px;
+  padding-left: 20px !important;
+}
+
+.sidebar-menu :deep(.el-menu-item.is-active) {
+  background-color: #ecf5ff;
+  color: #409eff;
+  border-right: 3px solid #409eff;
+}
+
+.sidebar-menu :deep(.el-sub-menu.is-active > .el-sub-menu__title) {
   color: #409eff;
 }
 
-.header-actions {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  flex-shrink: 0;
+.sidebar-menu :deep(.el-menu-item:hover),
+.sidebar-menu :deep(.el-sub-menu__title:hover) {
+  background-color: #f5f7fa;
 }
 
+/* 主内容区域 */
+.admin-main {
+  background-color: #f5f7fa;
+  padding: 0;
+  overflow-y: auto;
+}
+
+/* 面包屑导航 */
+.breadcrumb-container {
+  background: #fff;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e4e7ed;
+  margin-bottom: 0;
+}
+
+.breadcrumb-container :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+  color: #409eff;
+  font-weight: 500;
+}
+
+/* 页面内容 */
+.page-content {
+  padding: 20px;
+  min-height: calc(100vh - 60px - 45px);
+}
+
+/* 顶部按钮样式优化 */
+.header-right .el-button {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: none;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.header-right .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-right .el-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 主要按钮样式 */
+.header-right .el-button--primary {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-right .el-button--primary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.header-right .el-button--primary:focus {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 默认按钮样式 */
+.header-right .el-button--default {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-right .el-button--default:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.header-right .el-button--default:focus {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 按钮图标样式 */
+.header-right .el-button .el-icon {
+  margin-right: 4px;
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.header-right .el-button:hover .el-icon {
+  transform: scale(1.05);
+}
+
+/* 加载状态按钮 */
+.header-right .el-button.is-loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* 响应式按钮样式 */
+@media (max-width: 768px) {
+  .header-actions .el-button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .header-actions .el-button .el-icon {
+    font-size: 14px;
+    margin-right: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions .el-button span {
+    display: none;
+  }
+  
+  .header-actions .el-button .el-icon {
+    margin-right: 0;
+  }
+  
+  .header-actions .el-button {
+    padding: 8px;
+    min-width: 36px;
+  }
+}
+
+/* 用户信息样式 */
 .user-info {
   color: #fff;
 }
@@ -513,20 +816,179 @@ const handleHealthDialogClose = () => {
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   padding: 8px 12px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+  color: #fff;
 }
 
 .user-name:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
-.el-main {
-  padding: 20px;
-  background-color: #f5f7fa;
-  min-height: calc(100vh - 60px);
+.user-name:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.username {
+  font-size: 14px;
+  margin: 0 4px;
+}
+
+.dropdown-icon {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.user-name:hover .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+/* 头像样式 */
+.el-avatar {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 管理员标签 */
+.el-tag {
+  margin-left: 4px;
+}
+
+/* 用户下拉菜单样式优化 */
+.el-dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 0;
+}
+
+.el-dropdown-menu .el-dropdown-item {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  margin: 2px 8px;
+  color: #606266;
+}
+
+.el-dropdown-menu .el-dropdown-item:hover {
+  background: linear-gradient(135deg, #409eff 0%, #66b3ff 100%);
+  color: #fff;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+}
+
+.el-dropdown-menu .el-dropdown-item:focus {
+  background: linear-gradient(135deg, #409eff 0%, #66b3ff 100%);
+  color: #fff;
+}
+
+.el-dropdown-menu .el-dropdown-item.is-divided {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 8px;
+  padding-top: 12px;
+}
+
+.el-dropdown-menu .el-dropdown-item.is-divided::before {
+  content: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .system-title {
+    font-size: 16px;
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
+  
+  .header-right .el-button {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  .username {
+    display: none;
+  }
+  
+  .admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 60px;
+    height: calc(100vh - 60px);
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .admin-sidebar.mobile-show {
+    transform: translateX(0);
+  }
+  
+  .page-content {
+    padding: 15px;
+  }
+  
+  .breadcrumb-container {
+    padding: 8px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .system-title {
+    font-size: 14px;
+  }
+  
+  .page-content {
+    padding: 10px;
+  }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 菜单折叠动画 */
+.sidebar-menu :deep(.el-menu-item),
+.sidebar-menu :deep(.el-sub-menu) {
+  transition: all 0.3s ease;
+}
+
+.sidebar-menu.el-menu--collapse :deep(.el-menu-item .el-icon),
+.sidebar-menu.el-menu--collapse :deep(.el-sub-menu .el-icon) {
+  margin-right: 0;
 }
 
 
@@ -548,6 +1010,89 @@ const handleHealthDialogClose = () => {
 
 .health-overview {
   margin-bottom: 20px;
+}
+
+/* 对话框按钮样式优化 - 与系统健康检查按钮保持一致 */
+.dialog-footer .el-button,
+.el-dialog__footer .el-button {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  min-width: 80px;
+}
+
+.dialog-footer .el-button:hover,
+.el-dialog__footer .el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-footer .el-button:active,
+.el-dialog__footer .el-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 对话框主要按钮样式 */
+.dialog-footer .el-button--primary,
+.el-dialog__footer .el-button--primary {
+  background: linear-gradient(135deg, #409eff 0%, #66b3ff 100%);
+  color: #fff;
+}
+
+.dialog-footer .el-button--primary:hover,
+.el-dialog__footer .el-button--primary:hover {
+  background: linear-gradient(135deg, #337ecc 0%, #5aa3e6 100%);
+}
+
+.dialog-footer .el-button--primary:focus,
+.el-dialog__footer .el-button--primary:focus {
+  background: linear-gradient(135deg, #409eff 0%, #66b3ff 100%);
+}
+
+/* 对话框默认按钮样式 */
+.dialog-footer .el-button--default,
+.el-dialog__footer .el-button--default {
+  background: rgba(255, 255, 255, 0.9);
+  color: #606266;
+  backdrop-filter: blur(10px);
+}
+
+.dialog-footer .el-button--default:hover,
+.el-dialog__footer .el-button--default:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #409eff;
+}
+
+.dialog-footer .el-button--default:focus,
+.el-dialog__footer .el-button--default:focus {
+  background: rgba(255, 255, 255, 0.9);
+  color: #606266;
+}
+
+/* 对话框按钮图标样式 */
+.dialog-footer .el-button .el-icon,
+.el-dialog__footer .el-button .el-icon {
+  margin-right: 6px;
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.dialog-footer .el-button:hover .el-icon,
+.el-dialog__footer .el-button:hover .el-icon {
+  transform: scale(1.1);
+}
+
+/* 对话框底部按钮布局 */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding: 16px 0 0 0;
 }
 
 .health-overview .el-card__header {
@@ -606,11 +1151,7 @@ const handleHealthDialogClose = () => {
   font-size: 12px;
 }
 
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
+
 
 .el-descriptions {
   margin-top: 0;
