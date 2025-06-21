@@ -57,6 +57,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/health/**").permitAll()
                 .antMatchers("/api/public/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/tables/mock-columns").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/tables/columns").permitAll()
                 // 静态资源
                 .antMatchers("/", "/static/**", "/favicon.ico").permitAll()
                 // 管理员接口
