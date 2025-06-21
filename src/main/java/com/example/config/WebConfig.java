@@ -18,7 +18,13 @@ public class WebConfig implements WebMvcConfigurer {
         // 添加监控拦截器
         registry.addInterceptor(monitoringInterceptor)
                 .addPathPatterns("/api/**") // 只拦截API请求
-                .excludePathPatterns("/api/monitor/**"); // 排除监控接口本身，避免循环
+                .excludePathPatterns(
+                    "/api/monitor/data",
+                    "/api/monitor/performance", 
+                    "/api/monitor/api-stats",
+                    "/api/monitor/logs",
+                    "/api/monitor/health-summary"
+                ); // 只排除获取监控数据的接口，保留其他API接口的统计
     }
     
     @Override

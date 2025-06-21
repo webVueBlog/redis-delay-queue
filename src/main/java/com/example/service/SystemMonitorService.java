@@ -7,6 +7,8 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.time.LocalDateTime;
@@ -37,6 +39,11 @@ public class SystemMonitorService {
     private static final String MEMORY_HISTORY_KEY = HISTORY_KEY_PREFIX + "memory";
     private static final String QUEUE_HISTORY_KEY = HISTORY_KEY_PREFIX + "queue";
     private static final String API_HISTORY_KEY = HISTORY_KEY_PREFIX + "api";
+    
+    // 系统日志存储
+    private static final String SYSTEM_LOGS_KEY = "monitor:system:logs";
+    private final List<Map<String, Object>> systemLogs = Collections.synchronizedList(new ArrayList<>());
+    private final AtomicLong logIdCounter = new AtomicLong(1);
     
     /**
      * 获取系统信息
@@ -394,52 +401,45 @@ public class SystemMonitorService {
         Map<String, Object> result = new HashMap<>();
         
         try {
-            // 模拟日志数据，实际项目中可以从日志文件或日志系统中获取
-            List<Map<String, Object>> logs = new ArrayList<>();
+            // 过滤日志
+            List<Map<String, Object>> filteredLogs = new ArrayList<>();
             
-            // 生成一些示例日志数据
-            String[] levels = {"INFO", "WARN", "ERROR", "DEBUG"};
-            String[] messages = {
-                "系统启动完成",
-                "用户登录成功",
-                "Redis连接正常",
-                "队列任务处理完成",
-                "API请求处理",
-                "数据库连接检查",
-                "内存使用率检查",
-                "CPU使用率监控"
-            };
+            synchronized (systemLogs) {
+                for (Map<String, Object> logEntry : systemLogs) {
+                    String logLevel = (String) logEntry.get("level");
+                    String message = (String) logEntry.get("message");
+                    
+                    // 如果指定了级别过滤
+                    if (level != null && !level.isEmpty() && !logLevel.equals(level)) {
+                        continue;
+                    }
+                    
+                    // 如果指定了关键词过滤
+                    if (keyword != null && !keyword.isEmpty() && !message.contains(keyword)) {
+                        continue;
+                    }
+                    
+                    filteredLogs.add(logEntry);
+                }
+            }
             
-            LocalDateTime now = LocalDateTime.now();
-            int totalLogs = 1000; // 模拟总日志数
+            // 按时间倒序排列（最新的在前面）
+            filteredLogs.sort((a, b) -> {
+                String timeA = (String) a.get("timestamp");
+                String timeB = (String) b.get("timestamp");
+                return timeB.compareTo(timeA);
+            });
+            
+            int totalLogs = filteredLogs.size();
             int startIndex = (page - 1) * size;
             int endIndex = Math.min(startIndex + size, totalLogs);
             
-            for (int i = startIndex; i < endIndex; i++) {
-                Map<String, Object> logEntry = new HashMap<>();
-                String logLevel = levels[i % levels.length];
-                String message = messages[i % messages.length];
-                
-                // 如果指定了级别过滤
-                if (level != null && !level.isEmpty() && !logLevel.equals(level)) {
-                    continue;
-                }
-                
-                // 如果指定了关键词过滤
-                if (keyword != null && !keyword.isEmpty() && !message.contains(keyword)) {
-                    continue;
-                }
-                
-                logEntry.put("id", i + 1);
-                logEntry.put("timestamp", now.minusMinutes(totalLogs - i).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                logEntry.put("level", logLevel);
-                logEntry.put("message", message + " - " + (i + 1));
-                logEntry.put("source", "SystemMonitor");
-                
-                logs.add(logEntry);
+            List<Map<String, Object>> pagedLogs = new ArrayList<>();
+            if (startIndex < totalLogs) {
+                pagedLogs = filteredLogs.subList(startIndex, endIndex);
             }
             
-            result.put("logs", logs);
+            result.put("logs", pagedLogs);
             result.put("total", totalLogs);
             result.put("page", page);
             result.put("size", size);
@@ -447,9 +447,74 @@ public class SystemMonitorService {
             
         } catch (Exception e) {
             log.error("获取系统日志失败", e);
-            throw new RuntimeException("获取系统日志失败: " + e.getMessage());
+            result.put("logs", new ArrayList<>());
+            result.put("total", 0);
+            result.put("page", page);
+            result.put("size", size);
+            result.put("totalPages", 0);
         }
         
         return result;
+    }
+    
+    /**
+     * 清空系统日志
+     */
+    public void clearLogs() {
+        synchronized (systemLogs) {
+            systemLogs.clear();
+            logIdCounter.set(1);
+        }
+        log.info("系统日志已清空");
+    }
+    
+    /**
+     * 添加系统日志
+     */
+    public void addLog(String level, String message, String source) {
+        Map<String, Object> logEntry = new HashMap<>();
+        logEntry.put("id", logIdCounter.getAndIncrement());
+        logEntry.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        logEntry.put("level", level);
+        logEntry.put("message", message);
+        logEntry.put("source", source != null ? source : "System");
+        
+        synchronized (systemLogs) {
+            systemLogs.add(logEntry);
+            // 限制日志数量，避免内存溢出
+            if (systemLogs.size() > 10000) {
+                systemLogs.remove(0);
+            }
+        }
+    }
+    
+    /**
+     * 初始化一些测试数据（用于演示API统计功能）
+     */
+    @PostConstruct
+    public void initTestData() {
+        // 模拟一些API请求数据
+        recordApiRequest("/api/users", 150, false);
+        recordApiRequest("/api/orders", 200, false);
+        recordApiRequest("/api/products", 180, false);
+        recordApiRequest("/api/users", 160, true); // 错误请求
+        recordApiRequest("/api/orders", 220, false);
+        recordApiRequest("/api/products", 190, false);
+        recordApiRequest("/api/auth/login", 100, false);
+        recordApiRequest("/api/auth/logout", 80, false);
+        recordApiRequest("/api/orders", 250, true); // 错误请求
+        recordApiRequest("/api/products", 170, false);
+        
+        // 添加一些初始系统日志
+        addLog("INFO", "系统启动完成", "SystemMonitor");
+        addLog("INFO", "Redis连接建立成功", "RedisService");
+        addLog("INFO", "延迟队列服务启动", "DelayQueueService");
+        addLog("WARN", "内存使用率较高: 85%", "SystemMonitor");
+        addLog("INFO", "用户登录: admin", "AuthService");
+        addLog("ERROR", "API请求失败: /api/users", "ApiController");
+        addLog("INFO", "定时任务执行完成", "ScheduledTask");
+        addLog("DEBUG", "数据库连接池状态检查", "DatabaseService");
+        
+        log.info("已初始化API统计测试数据");
     }
 }

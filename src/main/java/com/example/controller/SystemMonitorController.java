@@ -345,4 +345,29 @@ public class SystemMonitorController {
             return ResponseEntity.status(500).body(response);
         }
     }
+    
+    /**
+     * 清空系统日志
+     */
+    @PostMapping("/clear-logs")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<Map<String, Object>> clearLogs() {
+        try {
+            systemMonitorService.clearLogs();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "系统日志清空成功");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("清空系统日志失败", e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "清空系统日志失败: " + e.getMessage());
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

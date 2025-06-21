@@ -347,6 +347,51 @@
       </el-col>
     </el-row>
 
+    <!-- API统计信息 -->
+    <el-row :gutter="20" class="api-stats-row">
+      <el-col :span="12">
+        <el-card title="API请求统计">
+          <div class="api-overview">
+            <div class="api-metric">
+              <div class="metric-label">总请求数</div>
+              <div class="metric-value">{{ apiStats.totalRequests }}</div>
+            </div>
+            <div class="api-metric">
+              <div class="metric-label">总错误数</div>
+              <div class="metric-value error">{{ apiStats.totalErrors }}</div>
+            </div>
+            <div class="api-metric">
+              <div class="metric-label">错误率</div>
+              <div class="metric-value error">{{ apiStats.totalRequests > 0 ? Math.round((apiStats.totalErrors / apiStats.totalRequests) * 100 * 100) / 100 : 0 }}%</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card title="接口详细统计">
+          <div class="endpoint-stats">
+            <div v-if="Object.keys(apiStats.endpoints).length === 0" class="no-data">
+              <el-empty description="暂无API请求数据" />
+            </div>
+            <div v-else class="endpoint-list">
+              <div 
+                v-for="(stats, endpoint) in apiStats.endpoints" 
+                :key="endpoint" 
+                class="endpoint-item"
+              >
+                <div class="endpoint-name">{{ endpoint }}</div>
+                <div class="endpoint-metrics">
+                  <span class="metric">请求: {{ stats.requests }}</span>
+                  <span class="metric">平均响应: {{ Math.round(stats.avgResponseTime) }}ms</span>
+                  <span class="metric error" v-if="stats.errorRate > 0">错误率: {{ Math.round(stats.errorRate * 100) / 100 }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <!-- 日志监控 -->
     <el-row :gutter="20" class="logs-row">
       <el-col :span="24">
@@ -527,6 +572,7 @@ import {
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 import * as echarts from 'echarts'
+import request from '../utils/request'
 
 // 响应式数据
 const loading = ref(false)
@@ -587,6 +633,13 @@ const performanceMetrics = reactive({
   qpsChange: 0,
   errorRate: 0,
   activeConnections: 0
+})
+
+// API统计数据
+const apiStats = reactive({
+  totalRequests: 0,
+  totalErrors: 0,
+  endpoints: {}
 })
 
 // 设置
@@ -767,7 +820,8 @@ const refreshData = async () => {
       loadRedisInfo(),
       loadQueueStats(),
       loadHistoryData(),
-      updatePerformanceMetrics()
+      updatePerformanceMetrics(),
+      updateApiStats()
     ])
     
     // 检查告警
@@ -795,8 +849,45 @@ const updatePerformanceMetrics = async () => {
   }
 }
 
-const clearLogs = () => {
-  logs.value = []
+// 获取API统计数据
+const updateApiStats = async () => {
+  try {
+    const response = await axios.get('/api/monitor/api-stats')
+    if (response.data.success) {
+      Object.assign(apiStats, response.data.data)
+      // 更新性能指标中的相关数据
+      if (apiStats.totalRequests > 0) {
+        performanceMetrics.qps = apiStats.totalRequests
+        performanceMetrics.errorRate = Math.round((apiStats.totalErrors / apiStats.totalRequests) * 100 * 100) / 100
+      }
+    }
+  } catch (error) {
+    console.error('加载API统计失败:', error)
+  }
+}
+
+const clearLogs = async () => {
+  try {
+    await ElMessageBox.confirm('确定要清空所有系统日志吗？此操作不可恢复！', '确认清空', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    const response = await request.post('/api/monitor/clear-logs')
+    
+    if (response.data.success) {
+      logs.value = []
+      ElMessage.success('系统日志清空成功')
+    } else {
+      ElMessage.error(response.data.message || '系统日志清空失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('清空系统日志失败:', error)
+      ElMessage.error('清空系统日志失败')
+    }
+  }
 }
 
 // 新增方法
@@ -1615,6 +1706,74 @@ onUnmounted(() => {
 
 .details-row {
   margin-bottom: 20px;
+}
+
+.api-stats-row {
+  margin-bottom: 20px;
+}
+
+.api-overview {
+  display: flex;
+  justify-content: space-around;
+  gap: 16px;
+}
+
+.api-metric {
+  text-align: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  flex: 1;
+}
+
+.endpoint-stats {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.endpoint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.endpoint-item {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #409eff;
+}
+
+.endpoint-name {
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.endpoint-metrics {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #606266;
+}
+
+.endpoint-metrics .metric {
+  padding: 2px 8px;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+}
+
+.endpoint-metrics .metric.error {
+  color: #f56c6c;
+  border-color: #f56c6c;
+  background: #fef0f0;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px 0;
 }
 
 .logs-row {
