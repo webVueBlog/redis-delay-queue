@@ -10,6 +10,7 @@ import SystemSettings from '../views/SystemSettings.vue'
 import OperationLogs from '../views/OperationLogs.vue'
 import MyTasks from '../views/MyTasks.vue'
 import UserPermissionOrganizations from '../views/UserPermissionOrganizations.vue'
+import DatabaseConnectionPool from '../views/DatabaseConnectionPool.vue'
 import Login from '../views/Login.vue'
 
 const routes = [
@@ -59,6 +60,14 @@ const routes = [
     path: '/monitor',
     name: 'SystemMonitor',
     component: SystemMonitor,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/database-pool',
+    name: 'DatabaseConnectionPool',
+    component: DatabaseConnectionPool,
     meta: {
       requiresAuth: true
     }
