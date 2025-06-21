@@ -50,8 +50,7 @@ const routes = [
     name: 'DelayQueueManagement',
     component: DelayQueueManagement,
     meta: {
-      requiresAuth: true,
-      requiresAdmin: true
+      requiresAuth: true
     }
   },
   {

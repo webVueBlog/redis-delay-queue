@@ -7,20 +7,9 @@
       </div>
     </el-card>
     
+    <!-- 核心功能区域 - 所有用户可见 -->
     <el-row :gutter="20" class="stats-row">
-      <el-col :span="6">
-        <el-card class="stat-card" @click="$router.push('/users')">
-          <div class="stat-content">
-            <el-icon class="stat-icon"><User /></el-icon>
-            <div class="stat-info">
-              <h3>用户管理</h3>
-              <p>管理系统用户和权限</p>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="6">
+      <el-col :span="isAdmin ? 6 : 12">
         <el-card class="stat-card" @click="$router.push('/delay-queue')">
           <div class="stat-content">
             <el-icon class="stat-icon"><Clock /></el-icon>
@@ -32,7 +21,32 @@
         </el-card>
       </el-col>
       
-      <el-col :span="6">
+      <el-col :span="isAdmin ? 6 : 12">
+        <el-card class="stat-card">
+          <div class="stat-content">
+            <el-icon class="stat-icon"><DataBoard /></el-icon>
+            <div class="stat-info">
+              <h3>我的任务</h3>
+              <p>查看我的队列任务</p>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      
+      <!-- 管理功能区域 - 仅管理员可见 -->
+      <el-col :span="6" v-if="isAdmin">
+        <el-card class="stat-card" @click="$router.push('/users')">
+          <div class="stat-content">
+            <el-icon class="stat-icon"><User /></el-icon>
+            <div class="stat-info">
+              <h3>用户管理</h3>
+              <p>管理系统用户和权限</p>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      
+      <el-col :span="6" v-if="isAdmin">
         <el-card class="stat-card" @click="$router.push('/monitor')">
           <div class="stat-content">
             <el-icon class="stat-icon"><Monitor /></el-icon>
@@ -43,7 +57,10 @@
           </div>
         </el-card>
       </el-col>
+    </el-row>
       
+    <!-- 管理功能第二行 - 仅管理员可见 -->
+    <el-row :gutter="20" class="stats-row" v-if="isAdmin">
       <el-col :span="6">
          <el-card class="stat-card" @click="$router.push('/menus')">
            <div class="stat-content">
@@ -55,9 +72,7 @@
            </div>
          </el-card>
        </el-col>
-      </el-row>
-      
-      <el-row :gutter="20" class="stats-row">
+       
        <el-col :span="6">
          <el-card class="stat-card" @click="$router.push('/organizations')">
            <div class="stat-content">
@@ -133,7 +148,26 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { User, Clock, Monitor, Menu, OfficeBuilding, DataBoard, Setting, Document } from '@element-plus/icons-vue'
+
+const router = useRouter()
+const userRole = ref(localStorage.getItem('userRole') || '')
+
+// 计算属性
+const isAdmin = computed(() => userRole.value === 'ADMIN')
+const isLoggedIn = computed(() => !!localStorage.getItem('token'))
+
+// 生命周期
+onMounted(() => {
+  // 监听存储变化，实时更新用户角色
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'userRole') {
+      userRole.value = e.newValue || ''
+    }
+  })
+})
 </script>
 
 <style scoped>
