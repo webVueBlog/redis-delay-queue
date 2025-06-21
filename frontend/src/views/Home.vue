@@ -1,10 +1,93 @@
 <template>
   <div class="home">
-    <el-card class="welcome-card">
-      <div class="welcome-content">
-        <h1>欢迎使用Redis延迟队列管理系统</h1>
-        <p>这是一个基于Redis的延迟队列系统，支持用户管理和权限控制</p>
+    <!-- 欢迎横幅 -->
+    <div class="welcome-banner">
+      <div class="banner-content">
+        <div class="welcome-text">
+          <h1>欢迎回来，{{ currentUser.username || '用户' }}！</h1>
+          <p class="welcome-subtitle">{{ getWelcomeMessage() }}</p>
+          <div class="user-stats">
+            <el-tag type="success" size="large">{{ currentUser.role === 'ADMIN' ? '系统管理员' : '普通用户' }}</el-tag>
+            <span class="last-login">上次登录：{{ formatLastLogin() }}</span>
+          </div>
+        </div>
+        <div class="banner-actions">
+          <el-button type="primary" size="large" @click="$router.push('/delay-queue')">
+            <el-icon><Clock /></el-icon>
+            创建延迟任务
+          </el-button>
+          <el-button size="large" @click="$router.push('/my-tasks')">
+            <el-icon><DataBoard /></el-icon>
+            查看我的任务
+          </el-button>
+        </div>
       </div>
+    </div>
+
+    <!-- 快速统计 -->
+    <el-row :gutter="20" class="quick-stats">
+      <el-col :span="6">
+        <el-card class="stat-overview-card">
+          <div class="stat-item">
+            <div class="stat-number">{{ systemStats.totalTasks || 0 }}</div>
+            <div class="stat-label">总任务数</div>
+            <el-icon class="stat-icon-bg"><Clock /></el-icon>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-overview-card">
+          <div class="stat-item">
+            <div class="stat-number">{{ systemStats.pendingTasks || 0 }}</div>
+            <div class="stat-label">待执行任务</div>
+            <el-icon class="stat-icon-bg"><Timer /></el-icon>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-overview-card">
+          <div class="stat-item">
+            <div class="stat-number">{{ systemStats.completedTasks || 0 }}</div>
+            <div class="stat-label">已完成任务</div>
+            <el-icon class="stat-icon-bg"><CircleCheck /></el-icon>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-overview-card">
+          <div class="stat-item">
+            <div class="stat-number">{{ systemStats.onlineUsers || 0 }}</div>
+            <div class="stat-label">在线用户</div>
+            <el-icon class="stat-icon-bg"><User /></el-icon>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 快速操作 -->
+    <el-card class="quick-actions-card">
+      <template #header>
+        <div class="card-header">
+          <span class="card-title">快速操作</span>
+          <el-button text @click="refreshData">
+            <el-icon><Refresh /></el-icon>
+            刷新
+          </el-button>
+        </div>
+      </template>
+      <el-row :gutter="16">
+        <el-col :span="4" v-for="action in quickActions" :key="action.key">
+          <div class="quick-action-item" @click="handleQuickAction(action)">
+            <el-icon class="action-icon" :class="action.iconClass">
+              <component :is="action.icon" />
+            </el-icon>
+            <div class="action-text">
+              <div class="action-title">{{ action.title }}</div>
+              <div class="action-desc">{{ action.description }}</div>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
     </el-card>
     
     <!-- 数据库表结构展示 -->
@@ -139,126 +222,121 @@
       </div>
     </el-card>
     
-    <!-- 核心功能区域 - 所有用户可见 -->
-    <el-row :gutter="20" class="stats-row">
-      <el-col :span="isAdmin ? 6 : 12">
-        <el-card class="stat-card" @click="$router.push('/delay-queue')">
-          <div class="stat-content">
-            <el-icon class="stat-icon"><Clock /></el-icon>
-            <div class="stat-info">
-              <h3>延迟队列</h3>
-              <p>Redis延迟队列服务</p>
+    <!-- 功能模块 -->
+    <el-row :gutter="20" class="function-modules">
+      <!-- 业务功能 -->
+      <el-col :span="12">
+        <el-card class="module-card business-module">
+          <template #header>
+            <div class="module-header">
+              <el-icon class="module-icon"><Operation /></el-icon>
+              <span class="module-title">业务功能</span>
+            </div>
+          </template>
+          <div class="module-content">
+            <div class="function-grid">
+              <div class="function-item primary" @click="$router.push('/delay-queue')">
+                <el-icon><Clock /></el-icon>
+                <span>延迟队列</span>
+              </div>
+              <div class="function-item" @click="$router.push('/my-tasks')">
+                <el-icon><DataBoard /></el-icon>
+                <span>我的任务</span>
+              </div>
+              <div class="function-item" @click="$router.push('/user-permission-organizations')">
+                <el-icon><OfficeBuilding /></el-icon>
+                <span>权限组织</span>
+              </div>
             </div>
           </div>
         </el-card>
       </el-col>
-      
-      <el-col :span="isAdmin ? 6 : 12" class="stats-row">
-        <el-card class="stat-card" @click="$router.push('/my-tasks')">
-          <div class="stat-content">
-            <el-icon class="stat-icon"><DataBoard /></el-icon>
-            <div class="stat-info">
-              <h3>我的任务</h3>
-              <p>查看我的队列任务</p>
+
+      <!-- 系统管理 -->
+      <el-col :span="12" v-if="isAdmin">
+        <el-card class="module-card admin-module">
+          <template #header>
+            <div class="module-header">
+              <el-icon class="module-icon"><Setting /></el-icon>
+              <span class="module-title">系统管理</span>
             </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="isAdmin ? 6 : 12" v-if="!isAdmin" class="stats-row">
-        <el-card class="stat-card" @click="$router.push('/user-permission-organizations')">
-          <div class="stat-content">
-            <el-icon class="stat-icon"><OfficeBuilding /></el-icon>
-            <div class="stat-info">
-              <h3>权限组织</h3>
-              <p>查看我的权限组织和管理范围</p>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="isAdmin ? 6 : 12" class="stats-row">
-        <el-card class="stat-card" @click="$router.push('/users')">
-          <div class="stat-content">
-            <el-icon class="stat-icon"><User /></el-icon>
-            <div class="stat-info">
-              <h3>用户管理</h3>
-              <p>管理系统用户和权限</p>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="isAdmin ? 6 : 12" class="stats-row">
-        <el-card class="stat-card" @click="$router.push('/monitor')">
-          <div class="stat-content">
-            <el-icon class="stat-icon"><Monitor /></el-icon>
-            <div class="stat-info">
-              <h3>系统监控</h3>
-              <p>实时监控系统状态</p>
+          </template>
+          <div class="module-content">
+            <div class="function-grid">
+              <div class="function-item" @click="$router.push('/users')">
+                <el-icon><User /></el-icon>
+                <span>用户管理</span>
+              </div>
+              <div class="function-item" @click="$router.push('/menus')">
+                <el-icon><Menu /></el-icon>
+                <span>菜单管理</span>
+              </div>
+              <div class="function-item" @click="$router.push('/organizations')">
+                <el-icon><OfficeBuilding /></el-icon>
+                <span>组织管理</span>
+              </div>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
-      
-    <el-row :gutter="20" class="stats-row" >
-      <el-col :span="6">
-         <el-card class="stat-card" @click="$router.push('/menus')">
-           <div class="stat-content">
-             <el-icon class="stat-icon"><Menu /></el-icon>
-             <div class="stat-info">
-               <h3>菜单管理</h3>
-               <p>管理系统菜单结构</p>
-             </div>
-           </div>
-         </el-card>
-       </el-col>
-       
-       <el-col :span="6" class="stats-row">
-         <el-card class="stat-card" @click="$router.push('/organizations')">
-           <div class="stat-content">
-             <el-icon class="stat-icon"><OfficeBuilding /></el-icon>
-             <div class="stat-info">
-               <h3>组织管理</h3>
-               <p>管理组织架构</p>
-             </div>
-           </div>
-         </el-card>
-       </el-col>
-       <el-col :span="6" class="stats-row">
-         <el-card class="stat-card" @click="$router.push('/data-statistics')">
-           <div class="stat-content">
-             <el-icon class="stat-icon"><DataBoard /></el-icon>
-             <div class="stat-info">
-               <h3>数据统计</h3>
-               <p>查看系统数据统计</p>
-             </div>
-           </div>
-         </el-card>
-       </el-col>
-       <el-col :span="6" class="stats-row">
-         <el-card class="stat-card" @click="$router.push('/system-settings')">
-           <div class="stat-content">
-             <el-icon class="stat-icon"><Setting /></el-icon>
-             <div class="stat-info">
-               <h3>系统设置</h3>
-               <p>配置系统参数</p>
-             </div>
-           </div>
-         </el-card>
-       </el-col>
-       <el-col :span="6" class="stats-row">
-         <el-card class="stat-card" @click="$router.push('/operation-logs')">
-           <div class="stat-content">
-             <el-icon class="stat-icon"><Document /></el-icon>
-             <div class="stat-info">
-               <h3>操作日志</h3>
-               <p>查看系统操作记录</p>
-             </div>
-           </div>
-         </el-card>
-       </el-col>
+
+    <el-row :gutter="20" class="function-modules">
+      <!-- 监控统计 -->
+      <el-col :span="12">
+        <el-card class="module-card monitor-module">
+          <template #header>
+            <div class="module-header">
+              <el-icon class="module-icon"><Monitor /></el-icon>
+              <span class="module-title">监控统计</span>
+            </div>
+          </template>
+          <div class="module-content">
+            <div class="function-grid">
+              <div class="function-item" @click="$router.push('/monitor')">
+                <el-icon><Monitor /></el-icon>
+                <span>系统监控</span>
+              </div>
+              <div class="function-item" @click="$router.push('/data-statistics')">
+                <el-icon><DataBoard /></el-icon>
+                <span>数据统计</span>
+              </div>
+              <div class="function-item" @click="$router.push('/operation-logs')">
+                <el-icon><Document /></el-icon>
+                <span>操作日志</span>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+
+      <!-- 系统设置 -->
+      <el-col :span="12">
+        <el-card class="module-card settings-module">
+          <template #header>
+            <div class="module-header">
+              <el-icon class="module-icon"><Tools /></el-icon>
+              <span class="module-title">系统配置</span>
+            </div>
+          </template>
+          <div class="module-content">
+            <div class="function-grid">
+              <div class="function-item" @click="$router.push('/system-settings')">
+                <el-icon><Setting /></el-icon>
+                <span>系统设置</span>
+              </div>
+              <div class="function-item" @click="openHealthDialog">
+                <el-icon><Monitor /></el-icon>
+                <span>健康检查</span>
+              </div>
+              <div class="function-item" @click="refreshData">
+                <el-icon><Refresh /></el-icon>
+                <span>刷新数据</span>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
     </el-row>
     
     <el-card class="feature-card">
@@ -293,11 +371,185 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, Clock, Monitor, Menu, OfficeBuilding, DataBoard, Setting, Document, Refresh, Grid } from '@element-plus/icons-vue'
+import { 
+  User, Clock, Monitor, Menu, OfficeBuilding, DataBoard, Setting, Document, 
+  Refresh, Grid, Timer, CircleCheck, Operation, Tools 
+} from '@element-plus/icons-vue'
 import request from '../utils/request'
 
 const router = useRouter()
 const userRole = ref(localStorage.getItem('userRole') || '')
+
+// 当前用户信息
+const currentUser = ref({
+  username: localStorage.getItem('username') || '用户',
+  role: localStorage.getItem('userRole') || 'USER',
+  lastLoginTime: localStorage.getItem('lastLoginTime') || new Date().toISOString()
+})
+
+// 系统统计数据
+const systemStats = ref({
+  totalTasks: 0,
+  pendingTasks: 0,
+  completedTasks: 0,
+  onlineUsers: 0
+})
+
+// 快速操作配置
+const quickActions = ref([
+  {
+    key: 'create-task',
+    title: '创建任务',
+    description: '新建延迟任务',
+    icon: Clock,
+    iconClass: 'primary-icon',
+    route: '/delay-queue'
+  },
+  {
+    key: 'my-tasks',
+    title: '我的任务',
+    description: '查看任务列表',
+    icon: DataBoard,
+    iconClass: 'success-icon',
+    route: '/my-tasks'
+  },
+  {
+    key: 'monitor',
+    title: '系统监控',
+    description: '实时监控',
+    icon: Monitor,
+    iconClass: 'warning-icon',
+    route: '/monitor'
+  },
+  {
+    key: 'users',
+    title: '用户管理',
+    description: '管理用户',
+    icon: User,
+    iconClass: 'info-icon',
+    route: '/users'
+  },
+  {
+    key: 'settings',
+    title: '系统设置',
+    description: '配置参数',
+    icon: Setting,
+    iconClass: 'default-icon',
+    route: '/system-settings'
+  },
+  {
+    key: 'logs',
+    title: '操作日志',
+    description: '查看日志',
+    icon: Document,
+    iconClass: 'danger-icon',
+    route: '/operation-logs'
+  }
+])
+
+// 获取欢迎消息
+const getWelcomeMessage = () => {
+  const hour = new Date().getHours()
+  if (hour < 6) return '夜深了，注意休息哦！'
+  if (hour < 9) return '早上好！新的一天开始了！'
+  if (hour < 12) return '上午好！今天也要加油哦！'
+  if (hour < 14) return '中午好！记得休息一下！'
+  if (hour < 18) return '下午好！工作进展如何？'
+  if (hour < 22) return '晚上好！今天辛苦了！'
+  return '夜深了，早点休息吧！'
+}
+
+// 格式化最后登录时间
+const formatLastLogin = () => {
+  const lastLogin = currentUser.value.lastLoginTime
+  if (!lastLogin) return '首次登录'
+  
+  const date = new Date(lastLogin)
+  const now = new Date()
+  const diff = now - date
+  
+  if (diff < 60000) return '刚刚'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
+  return date.toLocaleDateString()
+}
+
+// 处理快速操作点击
+const handleQuickAction = (action) => {
+  if (action.route) {
+    router.push(action.route)
+  }
+}
+
+// 打开健康检查对话框
+const openHealthDialog = () => {
+  // 这里可以调用App.vue中的健康检查方法
+  ElMessage.info('健康检查功能开发中...')
+}
+
+// 刷新数据
+const refreshData = async () => {
+  try {
+    await Promise.all([
+      fetchSystemStats(),
+      fetchData()
+    ])
+    ElMessage.success('数据刷新成功')
+  } catch (error) {
+    console.error('刷新数据失败:', error)
+    ElMessage.error('数据刷新失败')
+  }
+}
+
+// 获取系统统计数据
+const fetchSystemStats = async () => {
+  try {
+    // 并行获取多个统计数据
+    const [queueStatsRes, overviewRes, logStatsRes] = await Promise.allSettled([
+      request.get('/api/monitor/queue-stats'),
+      request.get('/api/statistics/overview'),
+      request.get('/api/operation-logs/stats')
+    ])
+    
+    // 处理队列统计数据
+    let queueStats = {}
+    if (queueStatsRes.status === 'fulfilled' && queueStatsRes.value?.data?.success) {
+      queueStats = queueStatsRes.value.data.data || {}
+    }
+    
+    // 处理概览统计数据
+    let overviewStats = {}
+    if (overviewRes.status === 'fulfilled' && overviewRes.value?.data?.success) {
+      overviewStats = overviewRes.value.data.data || {}
+    }
+    
+    // 处理日志统计数据
+    let logStats = {}
+    if (logStatsRes.status === 'fulfilled' && logStatsRes.value?.data?.success) {
+      logStats = logStatsRes.value.data.data || {}
+    }
+    
+    // 合并统计数据
+    systemStats.value = {
+      totalTasks: queueStats.totalTasks || overviewStats.totalTasks || 0,
+      pendingTasks: queueStats.pendingTasks || 0,
+      completedTasks: queueStats.completedTasks || 0,
+      onlineUsers: logStats.activeUsers || overviewStats.totalUsers || 0
+    }
+    
+    console.log('系统统计数据获取成功:', systemStats.value)
+  } catch (error) {
+    console.error('获取系统统计失败:', error)
+    // 发生错误时使用默认值
+    systemStats.value = {
+      totalTasks: 0,
+      pendingTasks: 0,
+      completedTasks: 0,
+      onlineUsers: 0
+    }
+    ElMessage.warning('获取统计数据失败，显示默认数据')
+  }
+}
 
 // 表格数据相关状态
 const loading = ref(false)
@@ -378,6 +630,7 @@ onMounted(() => {
   // 如果用户已登录，自动加载数据
   if (isLoggedIn.value) {
     fetchData()
+    fetchSystemStats()
   }
   
   // 组件销毁时移除事件监听器
@@ -389,23 +642,181 @@ onMounted(() => {
 
 <style scoped>
 .home {
+}
+
+/* 欢迎横幅样式 */
+.welcome-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 40px;
+  margin-bottom: 24px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.banner-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.welcome-text h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-subtitle {
+  font-size: 18px;
+  opacity: 0.9;
+  margin: 0 0 16px 0;
+}
+
+.user-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.last-login {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.banner-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.banner-actions .el-button {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.banner-actions .el-button--primary {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.banner-actions .el-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* 快速统计样式 */
+.quick-stats {
+  margin-bottom: 24px;
+}
+
+.stat-overview-card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.stat-overview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-item {
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.stat-icon-bg {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 48px;
+  color: #ecf0f1;
+  z-index: 1;
+}
+
+/* 快速操作样式 */
+.quick-actions-card {
+  margin-bottom: 24px;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.quick-action-item {
+  display: flex;
+  align-items: center;
   padding: 20px;
+  border-radius: 12px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
-.welcome-card {
-  margin-bottom: 20px;
-  text-align: center;
+.quick-action-item:hover {
+  background: white;
+  border-color: #409eff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.2);
 }
 
-.welcome-content h1 {
+.action-icon {
+  font-size: 32px;
+  margin-right: 16px;
   color: #409eff;
-  margin-bottom: 10px;
 }
 
-.welcome-content p {
-  color: #666;
-  font-size: 16px;
+.action-text {
+  flex: 1;
 }
+
+.action-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.action-desc {
+  font-size: 14px;
+  color: #7f8c8d;
+}
+
+.primary-icon { color: #409eff; }
+.success-icon { color: #67c23a; }
+.warning-icon { color: #e6a23c; }
+.danger-icon { color: #f56c6c; }
+.info-icon { color: #909399; }
+.default-icon { color: #606266; }
 
 .table-structure-card {
   margin-bottom: 20px;
@@ -484,46 +895,132 @@ onMounted(() => {
   text-align: center;
 }
 
-.stats-row {
-  margin-bottom: 20px;
+/* 功能模块样式 */
+.function-modules {
+  margin-bottom: 24px;
 }
 
-.stat-card {
-  height: 120px;
-  cursor: pointer;
+.module-card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: white;
 }
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.module-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
-.stat-card:active {
-  transform: translateY(0);
-}
-
-.stat-content {
+.module-header {
   display: flex;
   align-items: center;
-  height: 100%;
+  gap: 12px;
 }
 
-.stat-icon {
-  font-size: 40px;
+.module-icon {
+  font-size: 24px;
+}
+
+.module-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.module-content {
+  padding: 0;
+}
+
+.function-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1px;
+  background: #f0f2f5;
+}
+
+.function-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 100px;
+  position: relative;
+  overflow: hidden;
+}
+
+.function-item:hover {
+  background: #f8f9ff;
+  transform: translateY(-2px);
+}
+
+.function-item.primary {
+  background: linear-gradient(135deg, #409eff 0%, #5dade2 100%);
+  color: white;
+}
+
+.function-item.primary:hover {
+  background: linear-gradient(135deg, #337ecc 0%, #4a90c2 100%);
+}
+
+.function-item .el-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
   color: #409eff;
-  margin-right: 15px;
 }
 
-.stat-info h3 {
-  margin: 0 0 5px 0;
-  color: #333;
+.function-item.primary .el-icon {
+  color: white;
 }
 
-.stat-info p {
-  margin: 0;
-  color: #666;
+.function-item span {
   font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.function-item.primary span {
+  color: white;
+}
+
+/* 不同模块的主题色 */
+.business-module .module-icon {
+  color: #409eff;
+}
+
+.admin-module .module-icon {
+  color: #e6a23c;
+}
+
+.monitor-module .module-icon {
+  color: #67c23a;
+}
+
+.settings-module .module-icon {
+  color: #909399;
+}
+
+.business-module .el-card__header {
+  background: linear-gradient(135deg, #409eff10 0%, #409eff20 100%);
+}
+
+.admin-module .el-card__header {
+  background: linear-gradient(135deg, #e6a23c10 0%, #e6a23c20 100%);
+}
+
+.monitor-module .el-card__header {
+  background: linear-gradient(135deg, #67c23a10 0%, #67c23a20 100%);
+}
+
+.settings-module .el-card__header {
+  background: linear-gradient(135deg, #90939910 0%, #90939920 100%);
 }
 
 .feature-card h2 {

@@ -127,6 +127,15 @@ public class SystemMonitorController {
     }
     
     /**
+     * 获取队列统计信息（别名接口，用于首页统计）
+     */
+    @GetMapping("/queue-stats")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<Map<String, Object>> getQueueStatsAlias() {
+        return getQueueStats();
+    }
+    
+    /**
      * 获取性能指标
      */
     @GetMapping("/performance")

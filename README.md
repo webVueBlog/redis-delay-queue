@@ -1,5 +1,7 @@
 我来帮你创建一个基于Spring Boot和Redis实现的轻量级延迟队列。我们将创建以下组件：
 
+![img_5.png](./img_5.png)
+
 ![img_2.png](./img_2.png)
 
 ![img_4.png](./img_4.png)
