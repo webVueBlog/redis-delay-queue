@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="storyBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#16213e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f0f23;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="70%" cy="20%" r="30%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:0.1" />
+    </radialGradient>
+    <filter id="blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="800" height="600" fill="url(#storyBg)"/>
+  
+  <!-- 月亮光晕 -->
+  <ellipse cx="600" cy="120" rx="100" ry="80" fill="url(#moonGlow)" filter="url(#blur)"/>
+  
+  <!-- 月亮 -->
+  <circle cx="600" cy="120" r="40" fill="#FFD700" opacity="0.9"/>
+  <circle cx="590" cy="110" r="8" fill="#FFA500" opacity="0.6"/>
+  <circle cx="610" cy="125" r="5" fill="#FFA500" opacity="0.4"/>
+  <circle cx="595" cy="135" r="6" fill="#FFA500" opacity="0.5"/>
+  
+  <!-- 远山 -->
+  <path d="M0 400 Q100 350 200 380 Q300 320 400 350 Q500 300 600 330 Q700 280 800 310 L800 600 L0 600 Z" fill="#2c2c54" opacity="0.7"/>
+  
+  <!-- 中景山峰 -->
+  <path d="M0 450 Q150 400 300 430 Q450 380 600 410 Q700 370 800 390 L800 600 L0 600 Z" fill="#40407a" opacity="0.8"/>
+  
+  <!-- 近景山峰 -->
+  <path d="M0 500 Q200 470 400 490 Q600 460 800 480 L800 600 L0 600 Z" fill="#2c2c54"/>
+  
+  <!-- 古建筑轮廓 -->
+  <g opacity="0.6">
+    <!-- 塔楼 -->
+    <rect x="150" y="420" width="30" height="80" fill="#1a1a2e"/>
+    <polygon points="150,420 165,400 180,420" fill="#2c2c54"/>
+    <rect x="155" y="430" width="20" height="5" fill="#FFD700" opacity="0.3"/>
+    <rect x="155" y="450" width="20" height="5" fill="#FFD700" opacity="0.3"/>
+    
+    <!-- 宫殿 -->
+    <rect x="300" y="440" width="80" height="60" fill="#1a1a2e"/>
+    <polygon points="300,440 340,420 380,440" fill="#2c2c54"/>
+    <rect x="320" y="460" width="40" height="8" fill="#FFD700" opacity="0.4"/>
+  </g>
+  
+  <!-- 云朵 -->
+  <ellipse cx="200" cy="200" rx="60" ry="20" fill="#ffffff" opacity="0.1" filter="url(#blur)"/>
+  <ellipse cx="500" cy="180" rx="80" ry="25" fill="#ffffff" opacity="0.08" filter="url(#blur)"/>
+  <ellipse cx="100" cy="250" rx="50" ry="15" fill="#ffffff" opacity="0.12" filter="url(#blur)"/>
+  
+  <!-- 星星 -->
+  <g opacity="0.8">
+    <circle cx="100" cy="80" r="2" fill="#FFD700">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="250" cy="60" r="1.5" fill="#FFD700">
+      <animate attributeName="opacity" values="0.6;0.2;0.6" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="400" cy="90" r="2.5" fill="#FFD700">
+      <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="700" cy="70" r="1.8" fill="#FFD700">
+      <animate attributeName="opacity" values="0.7;0.3;0.7" dur="3.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- 飘落的花瓣 -->
+  <g opacity="0.4">
+    <ellipse cx="150" cy="300" rx="3" ry="8" fill="#FFB6C1" transform="rotate(45 150 300)">
+      <animateTransform attributeName="transform" type="translate" values="0,0; 20,100; 0,200" dur="8s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="400" cy="250" rx="2" ry="6" fill="#FFB6C1" transform="rotate(-30 400 250)">
+      <animateTransform attributeName="transform" type="translate" values="0,0; -15,120; 0,240" dur="10s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="650" cy="280" rx="2.5" ry="7" fill="#FFB6C1" transform="rotate(60 650 280)">
+      <animateTransform attributeName="transform" type="translate" values="0,0; 25,90; 0,180" dur="7s" repeatCount="indefinite"/>
+    </ellipse>
+  </g>
+  
+  <!-- 传统纹样边框 -->
+  <g opacity="0.3">
+    <path d="M20 20 Q30 10 40 20 Q30 30 20 20" fill="#FFD700"/>
+    <path d="M760 20 Q770 10 780 20 Q770 30 760 20" fill="#FFD700"/>
+    <path d="M20 580 Q30 570 40 580 Q30 590 20 580" fill="#FFD700"/>
+    <path d="M760 580 Q770 570 780 580 Q770 590 760 580" fill="#FFD700"/>
+  </g>
+</svg>

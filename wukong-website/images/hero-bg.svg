@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <radialGradient id="heroGradient" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0d0d0d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+    </radialGradient>
+    <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d2d2d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a0a0a;stop-opacity:1" />
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="1920" height="1080" fill="url(#heroGradient)"/>
+  
+  <!-- 远山轮廓 -->
+  <path d="M0 800 Q200 700 400 750 Q600 650 800 700 Q1000 600 1200 650 Q1400 550 1600 600 Q1800 500 1920 550 L1920 1080 L0 1080 Z" fill="url(#mountainGradient)" opacity="0.6" filter="url(#blur)"/>
+  
+  <!-- 中景山峰 -->
+  <path d="M0 900 Q300 800 600 850 Q900 750 1200 800 Q1500 700 1920 750 L1920 1080 L0 1080 Z" fill="url(#mountainGradient)" opacity="0.8"/>
+  
+  <!-- 近景山峰 -->
+  <path d="M0 950 Q400 900 800 920 Q1200 880 1920 900 L1920 1080 L0 1080 Z" fill="#1a1a1a"/>
+  
+  <!-- 云雾效果 -->
+  <ellipse cx="300" cy="600" rx="150" ry="50" fill="#ffffff" opacity="0.1" filter="url(#blur)"/>
+  <ellipse cx="800" cy="550" rx="200" ry="60" fill="#ffffff" opacity="0.08" filter="url(#blur)"/>
+  <ellipse cx="1400" cy="580" rx="180" ry="45" fill="#ffffff" opacity="0.12" filter="url(#blur)"/>
+  
+  <!-- 星光点缀 -->
+  <circle cx="200" cy="200" r="2" fill="#FFD700" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="500" cy="150" r="1.5" fill="#FFD700" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.2;0.6" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="800" cy="180" r="2.5" fill="#FFD700" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1200" cy="120" r="1.8" fill="#FFD700" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.3;0.7" dur="3.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1600" cy="160" r="2.2" fill="#FFD700" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.2;0.8" dur="4.2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- 中央光晕 -->
+  <ellipse cx="960" cy="400" rx="300" ry="100" fill="#FFD700" opacity="0.05" filter="url(#blur)"/>
+  
+  <!-- 传统纹样装饰 -->
+  <g opacity="0.3">
+    <path d="M100 100 Q120 80 140 100 Q120 120 100 100" fill="#FFD700" opacity="0.4"/>
+    <path d="M1780 100 Q1800 80 1820 100 Q1800 120 1780 100" fill="#FFD700" opacity="0.4"/>
+    <path d="M100 980 Q120 960 140 980 Q120 1000 100 980" fill="#FFD700" opacity="0.4"/>
+    <path d="M1780 980 Q1800 960 1820 980 Q1800 1000 1780 980" fill="#FFD700" opacity="0.4"/>
+  </g>
+</svg>
