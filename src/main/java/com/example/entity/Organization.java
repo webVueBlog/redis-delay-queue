@@ -32,25 +32,14 @@ public class Organization {
     @Column(name = "parent_id")
     private Long parentId;
     
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
     
     @Column(nullable = false)
     private Integer status = 1; // 1-正常，0-禁用
-    
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-    
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
     
     // 子组织列表（用于构建组织树）
     @Transient

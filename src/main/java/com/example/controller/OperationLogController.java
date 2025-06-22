@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/logs")
+@RequestMapping("/api/operation-logs")
 @RequiredArgsConstructor
 @Slf4j
 public class OperationLogController {

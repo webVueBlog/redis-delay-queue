@@ -32,11 +32,13 @@ public class OrganizationController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getOrganizationTree() {
         try {
+            log.info("开始获取组织树");
             List<Organization> organizationTree = organizationService.getOrganizationTree();
+            log.info("成功获取组织树，共{}个根组织", organizationTree.size());
             return ResponseEntity.ok(createSuccessResponse("查询成功", organizationTree));
         } catch (Exception e) {
-            log.error("获取组织树失败: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
+            log.error("获取组织树失败: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(createErrorResponse("获取组织树失败: " + e.getMessage()));
         }
     }
     

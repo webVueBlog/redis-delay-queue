@@ -23,13 +23,22 @@ public class OrganizationService {
      * 获取组织树
      */
     public List<Organization> getOrganizationTree() {
-        List<Organization> rootOrganizations = organizationRepository.findByParentIdIsNull();
-        
-        for (Organization rootOrg : rootOrganizations) {
-            buildOrganizationTree(rootOrg);
+        try {
+            log.info("开始查询根组织");
+            List<Organization> rootOrganizations = organizationRepository.findByParentIdIsNull();
+            log.info("找到{}个根组织", rootOrganizations.size());
+            
+            for (Organization rootOrg : rootOrganizations) {
+                log.debug("构建组织树: {}", rootOrg.getName());
+                buildOrganizationTree(rootOrg);
+            }
+            
+            log.info("组织树构建完成");
+            return rootOrganizations;
+        } catch (Exception e) {
+            log.error("获取组织树时发生错误: {}", e.getMessage(), e);
+            throw new RuntimeException("获取组织树失败: " + e.getMessage(), e);
         }
-        
-        return rootOrganizations;
     }
     
     /**

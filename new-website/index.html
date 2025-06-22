@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时尚电商 - 精品服装</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>FASHION</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#products" class="nav-link">产品</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#collections" class="nav-link">系列</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#about" class="nav-link">关于</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">联系</a>
+                </li>
+            </ul>
+            <div class="nav-actions">
+                <i class="fas fa-search"></i>
+                <i class="fas fa-shopping-bag"></i>
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="nav-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主页部分 -->
+    <section id="home" class="hero">
+        <div class="hero-background">
+            <div class="hero-image-left">
+                <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="时尚女性">
+            </div>
+            <div class="hero-image-right">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="时尚男性">
+            </div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title">时尚新风尚</h1>
+            <p class="hero-subtitle">探索最新的时尚趋势</p>
+            <button class="hero-btn">立即购买</button>
+        </div>
+        <div class="wave-divider">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
+                <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
+                <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- 产品分类部分 -->
+    <section id="products" class="products-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>精选产品</h2>
+                <p>发现我们的最新系列</p>
+            </div>
+            <div class="product-categories">
+                <div class="category-card">
+                    <div class="category-image">
+                        <img src="https://images.unsplash.com/photo-1542272604-787c3835535d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="女装">
+                    </div>
+                    <div class="category-info">
+                        <h3>女装</h3>
+                        <p>优雅与时尚的完美结合</p>
+                        <button class="category-btn">查看更多</button>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <div class="category-image">
+                        <img src="https://images.unsplash.com/photo-1488161628813-04466f872be2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="男装">
+                    </div>
+                    <div class="category-info">
+                        <h3>男装</h3>
+                        <p>经典与现代的时尚碰撞</p>
+                        <button class="category-btn">查看更多</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="wave-divider wave-light">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- 系列展示部分 -->
+    <section id="collections" class="collections-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>热门系列</h2>
+                <p>本季最受欢迎的时尚单品</p>
+            </div>
+            <div class="collections-grid">
+                <div class="collection-item large">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="春季新品">
+                    </div>
+                    <div class="collection-overlay">
+                        <h3>春季新品</h3>
+                        <p>清新自然的春日风情</p>
+                        <button class="collection-btn">立即选购</button>
+                    </div>
+                </div>
+                <div class="collection-item">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="商务系列">
+                    </div>
+                    <div class="collection-overlay">
+                        <h3>商务系列</h3>
+                        <p>专业与优雅并存</p>
+                        <button class="collection-btn">查看详情</button>
+                    </div>
+                </div>
+                <div class="collection-item">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="休闲装">
+                    </div>
+                    <div class="collection-overlay">
+                        <h3>休闲装</h3>
+                        <p>舒适自在的日常穿搭</p>
+                        <button class="collection-btn">查看详情</button>
+                    </div>
+                </div>
+                <div class="collection-item">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1434389677669-e08b4cac3105?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="配饰">
+                    </div>
+                    <div class="collection-overlay">
+                        <h3>精美配饰</h3>
+                        <p>点亮整体造型的细节</p>
+                        <button class="collection-btn">查看详情</button>
+                    </div>
+                </div>
+                <div class="collection-item">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="鞋履">
+                    </div>
+                    <div class="collection-overlay">
+                        <h3>时尚鞋履</h3>
+                        <p>每一步都彰显品味</p>
+                        <button class="collection-btn">查看详情</button>
+                    </div>
+                </div>
+                <div class="collection-item">
+                    <div class="collection-image">
+                        <img src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="包袋">
+                    </div>
+                    <div class="collection-overlay">
+                        <h3>精品包袋</h3>
+                        <p>实用与美观的完美平衡</p>
+                        <button class="collection-btn">查看详情</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="wave-divider">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
+                <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
+                <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- 产品展示部分 -->
+    <section class="featured-products">
+        <div class="container">
+            <div class="section-header">
+                <h2>推荐产品</h2>
+                <p>精心挑选的热门单品</p>
+            </div>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="产品1">
+                        <div class="product-overlay">
+                            <button class="quick-view">快速查看</button>
+                            <button class="add-to-cart">加入购物车</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h4>优雅连衣裙</h4>
+                        <p class="product-price">¥899</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1520975954732-35dd22299614?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="男士时尚外套">
+                        <div class="product-overlay">
+                            <button class="quick-view">快速查看</button>
+                            <button class="add-to-cart">加入购物车</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h4>男士时尚外套</h4>
+                        <p class="product-price">¥1299</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="男士商务衬衫">
+                        <div class="product-overlay">
+                            <button class="quick-view">快速查看</button>
+                            <button class="add-to-cart">加入购物车</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h4>男士商务衬衫</h4>
+                        <p class="product-price">¥599</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1473966968600-fa801b869a1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="男士休闲裤">
+                        <div class="product-overlay">
+                            <button class="quick-view">快速查看</button>
+                            <button class="add-to-cart">加入购物车</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h4>男士休闲裤</h4>
+                        <p class="product-price">¥699</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="男士西装">
+                        <div class="product-overlay">
+                            <button class="quick-view">快速查看</button>
+                            <button class="add-to-cart">加入购物车</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h4>男士精品西装</h4>
+                        <p class="product-price">¥2599</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1582552938357-32b906df40cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="男士运动鞋">
+                        <div class="product-overlay">
+                            <button class="quick-view">快速查看</button>
+                            <button class="add-to-cart">加入购物车</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h4>男士时尚运动鞋</h4>
+                        <p class="product-price">¥999</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于部分 -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>关于我们</h2>
+                    <p>我们致力于为每一位客户提供最优质的时尚体验。从设计到制作，每一个细节都体现着我们对品质的追求和对时尚的理解。</p>
+                    <p>我们相信，真正的时尚不仅仅是外表的装饰，更是内在品味和个性的体现。让我们一起探索属于你的独特风格。</p>
+                    <div class="about-stats">
+                        <div class="stat-item">
+                            <h3>10+</h3>
+                            <p>年品牌历史</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>50万+</h3>
+                            <p>满意客户</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>1000+</h3>
+                            <p>时尚单品</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="时尚男性模特">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系部分 -->
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>联系我们</h2>
+                <p>我们期待为您提供服务</p>
+            </div>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>门店地址</h4>
+                            <p>上海市静安区南京西路1234号</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h4>联系电话</h4>
+                            <p>400-888-8888</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>邮箱地址</h4>
+                            <p>service@fashion.com</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>营业时间</h4>
+                            <p>周一至周日 10:00-22:00</p>
+                        </div>
+                    </div>
+                </div>
+                <form class="contact-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" placeholder="您的姓名" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="您的邮箱" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="主题" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea placeholder="留言内容" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">发送消息</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>FASHION</h3>
+                    <p>引领时尚潮流，展现个人魅力</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>产品分类</h4>
+                    <ul>
+                        <li><a href="#">女装</a></li>
+                        <li><a href="#">男装</a></li>
+                        <li><a href="#">配饰</a></li>
+                        <li><a href="#">鞋履</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>客户服务</h4>
+                    <ul>
+                        <li><a href="#">配送信息</a></li>
+                        <li><a href="#">退换政策</a></li>
+                        <li><a href="#">尺码指南</a></li>
+                        <li><a href="#">常见问题</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>关于我们</h4>
+                    <ul>
+                        <li><a href="#">品牌故事</a></li>
+                        <li><a href="#">招聘信息</a></li>
+                        <li><a href="#">媒体中心</a></li>
+                        <li><a href="#">联系我们</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 FASHION. 保留所有权利。</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

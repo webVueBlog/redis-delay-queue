@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D换电柜 - 智能换电解决方案</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/FilmPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FilmShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>3D换电柜</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#features" class="nav-link">产品特色</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#demo" class="nav-link">3D演示</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">联系我们</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 主页面 -->
+    <main>
+        <!-- 首页横幅 -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1>智能3D换电柜</h1>
+                <p>革命性的电动车换电解决方案，快速、安全、智能</p>
+                <button class="cta-button" onclick="scrollToDemo()">体验3D演示</button>
+            </div>
+            <div class="hero-image">
+                <div id="hero-3d-container"></div>
+            </div>
+        </section>
+
+        <!-- 产品特色 -->
+        <section id="features" class="features">
+            <div class="container">
+                <h2>产品特色</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>快速换电</h3>
+                        <p>30秒内完成电池更换，比充电快100倍</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>安全可靠</h3>
+                        <p>多重安全保护机制，确保换电过程安全</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>智能管理</h3>
+                        <p>AI智能调度，实时监控电池状态</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌱</div>
+                        <h3>绿色环保</h3>
+                        <p>延长电池寿命，减少环境污染</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3D演示区域 -->
+        <section id="demo" class="demo-section">
+            <div class="container">
+                <h2>3D换电柜演示</h2>
+                <div class="demo-container">
+                    <div id="three-container"></div>
+                    <div class="demo-controls">
+                        <div class="control-buttons">
+                            <button class="control-btn" onclick="startDemo()">🤖 机械臂演示</button>
+                            <button class="control-btn" onclick="startRiderSwapDemo()">🏍️ 骑手换电演示</button>
+                            <button class="control-btn" onclick="pauseDemo()">⏸️ 暂停演示</button>
+                            <button class="control-btn" onclick="resetDemo()">🔄 重置机械臂</button>
+                            <button class="control-btn" onclick="resetRiderDemo()">🔄 重置骑手演示</button>
+                            <button class="control-btn" onclick="toggleEffects()">✨ 切换特效</button>
+                        </div>
+                        <div class="demo-info">
+                            <h4>操作说明：</h4>
+                            <ul>
+                                <li>鼠标左键拖拽：旋转视角</li>
+                                <li>鼠标滚轮：缩放</li>
+                                <li>鼠标右键拖拽：平移</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 联系我们 -->
+        <section id="contact" class="contact">
+            <div class="container">
+                <h2>联系我们</h2>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <h3>获取更多信息</h3>
+                        <p>📞 电话：400-123-4567</p>
+                        <p>📧 邮箱：info@3d-battery-swap.com</p>
+                        <p>📍 地址：北京市朝阳区科技园区</p>
+                    </div>
+                    <div class="contact-form">
+                        <form>
+                            <input type="text" placeholder="姓名" required>
+                            <input type="email" placeholder="邮箱" required>
+                            <textarea placeholder="留言" rows="4" required></textarea>
+                            <button type="submit">发送消息</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 3D换电柜. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

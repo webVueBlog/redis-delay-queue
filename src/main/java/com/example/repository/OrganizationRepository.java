@@ -48,19 +48,23 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
      */
     @Query("SELECT o FROM Organization o WHERE " +
            "(:name IS NULL OR LOWER(o.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-           "(:status IS NULL OR o.status = :status)")
-    Page<Organization> findByConditions(@Param("name") String name,
-                                       @Param("status") Integer status,
-                                       Pageable pageable);
+           "(:status IS NULL OR o.status = :status) ORDER BY o.id")
+    Page<Organization> findByConditions(@Param("name") String name, @Param("status") Integer status, Pageable pageable);
+    
+    /**
+     * 检查组织名称是否已存在（排除指定ID）
+     */
+    @Query("SELECT COUNT(o) > 0 FROM Organization o WHERE o.name = :name AND (:id IS NULL OR o.id != :id)")
+    boolean existsByNameAndIdNot(@Param("name") String name, @Param("id") Long id);
     
     /**
      * 查找组织及其所有子组织的ID
      */
     @Query(value = "WITH RECURSIVE org_tree AS (" +
-                   "  SELECT id, parent_id FROM organizations WHERE id = :orgId" +
-                   "  UNION ALL" +
-                   "  SELECT o.id, o.parent_id FROM organizations o" +
-                   "  INNER JOIN org_tree ot ON o.parent_id = ot.id" +
+                   "  SELECT id, parent_id FROM organizations WHERE id = :orgId " +
+                   "  UNION ALL " +
+                   "  SELECT o.id, o.parent_id FROM organizations o " +
+                   "  INNER JOIN org_tree ot ON o.parent_id = ot.id " +
                    ") SELECT id FROM org_tree", nativeQuery = true)
     List<Long> findAllChildOrganizationIds(@Param("orgId") Long orgId);
 }

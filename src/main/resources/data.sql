@@ -68,8 +68,10 @@ INSERT IGNORE INTO menus (name, code, path, icon, parent_id, sort_order, require
 ('个人中心', 'profile', '/profile', 'user', NULL, 2, 'USER'),
 ('表格查看器', 'table-viewer', '/table-viewer', 'table', NULL, 3, 'USER'),
 ('用户管理', 'user-management', '/user-management', 'users', NULL, 4, 'ADMIN'),
-('系统设置', 'system-settings', '/system-settings', 'settings', NULL, 5, 'ADMIN'),
-('健康检查', 'health-check', '/health-check', 'monitor', NULL, 6, 'ADMIN');
+('菜单管理', 'menu-management', '/menus', 'menu', NULL, 5, 'ADMIN'),
+('操作日志', 'operation-logs', '/operation-logs', 'document', NULL, 6, 'ADMIN'),
+('系统设置', 'system-settings', '/system-settings', 'settings', NULL, 7, 'ADMIN'),
+('健康检查', 'health-check', '/health-check', 'monitor', NULL, 8, 'ADMIN');
 
 -- 创建角色权限表（示例）
 CREATE TABLE IF NOT EXISTS role_permissions (

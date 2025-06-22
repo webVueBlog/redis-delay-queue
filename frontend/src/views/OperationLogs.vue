@@ -397,7 +397,7 @@ const loadLogs = async () => {
       delete params.dateRange
     }
     
-    const response = await request.get('/api/logs', { params })
+    const response = await request.get('/api/operation-logs', { params })
     logs.value = response.data.content || []
     pagination.total = response.data.totalElements || 0
     
@@ -420,7 +420,7 @@ const loadStats = async () => {
       params.endTime = searchForm.dateRange[1]
     }
     
-    const response = await request.get('/api/logs/stats', { params })
+    const response = await request.get('/api/operation-logs/stats', { params })
     Object.assign(stats, response.data)
   } catch (error) {
     console.error('加载统计数据失败:', error)
@@ -496,7 +496,7 @@ const handleSelectionChange = (selection) => {
 // 查看详情
 const viewDetail = async (log) => {
   try {
-    const response = await request.get(`/api/logs/${log.id}`)
+    const response = await request.get(`/api/operation-logs/${log.id}`)
     currentLog.value = response.data
     showDetailDialog.value = true
   } catch (error) {
@@ -517,7 +517,7 @@ const exportLogs = async () => {
       delete params.dateRange
     }
     
-    const response = await request.get('/api/logs/export', { 
+    const response = await request.get('/api/operation-logs/export', { 
       params,
       responseType: 'blob'
     })
@@ -565,7 +565,7 @@ const clearLogs = async () => {
       params.endTime = searchForm.dateRange[1]
     }
     
-    await request.delete('/api/logs', { params })
+    await request.delete('/api/operation-logs', { params })
     ElMessage.success('日志清空成功')
     loadLogs()
   } catch (error) {
@@ -591,7 +591,7 @@ const batchDeleteLogs = async () => {
     })
     
     const ids = selectedLogs.value.map(log => log.id)
-    await request.delete('/api/logs/batch', { data: { ids } })
+    await request.delete('/api/operation-logs/batch', { data: { ids } })
     ElMessage.success('批量删除成功')
     selectedLogs.value = []
     loadLogs()
