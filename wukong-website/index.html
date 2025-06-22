@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑神话：悟空 - 官方网站</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=200&fit=crop&crop=center" alt="美猴王孙悟空">
+            </div>
+            <div class="loading-text">正在加载...</div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=200&h=100&fit=crop&crop=center" alt="西游记经典">
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">首页</a></li>
+                <li><a href="#story" class="nav-link">故事</a></li>
+                <li><a href="#characters" class="nav-link">角色</a></li>
+                <li><a href="#gameplay" class="nav-link">玩法</a></li>
+                <li><a href="#media" class="nav-link">媒体</a></li>
+                <li><a href="#news" class="nav-link">新闻</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="btn-primary">立即购买</button>
+                <button class="nav-toggle" id="navToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主页横幅 -->
+    <section class="hero" id="home">
+        <div class="hero-background">
+            <video autoplay muted loop class="hero-video">
+                <source src="videos/hero-bg.mp4" type="video/mp4">
+            </video>
+            <div class="hero-overlay"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-logo">
+                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop&crop=center" alt="花果山仙境">
+            </div>
+            <h1 class="hero-title">黑神话：悟空</h1>
+            <p class="hero-subtitle">踏上西游之路，重燃斗战胜佛之魂</p>
+            <div class="hero-actions">
+                <button class="btn-primary btn-large">立即购买</button>
+                <button class="btn-secondary btn-large">观看预告</button>
+            </div>
+            <div class="hero-info">
+                <div class="platform-icons">
+                    <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=50&h=50&fit=crop&crop=center" alt="如意金箍棒">
+                    <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=50&h=50&fit=crop&crop=center" alt="筋斗云神通">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=50&h=50&fit=crop&crop=center" alt="七十二般变化">
+                </div>
+                <div class="release-date">
+                    <span>发售日期：2024年8月20日</span>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- 故事介绍 -->
+    <section class="story" id="story">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">传说重燃</h2>
+                <p class="section-subtitle">一个关于命运、选择与成长的史诗故事</p>
+            </div>
+            <div class="story-content">
+                <div class="story-text">
+                    <h3>西游新篇</h3>
+                    <p>在《西游记》的经典故事之后，孙悟空的传说并未结束。作为天命人，你将踏上一段全新的西游之路，探索一个充满神话色彩的世界。</p>
+                    <p>面对强大的敌人和未知的挑战，你需要掌握七十二变的神通，运用如意金箍棒的威力，在这个危机四伏的世界中寻找属于自己的道路。</p>
+                    <button class="btn-outline">了解更多</button>
+                </div>
+                <div class="story-visual">
+                    <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=400&fit=crop&crop=center" alt="西游记经典场景">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 角色展示 -->
+    <section class="characters" id="characters">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">传奇角色</h2>
+                <p class="section-subtitle">遇见西游世界中的经典人物</p>
+            </div>
+            <div class="characters-grid">
+                <div class="character-card active" data-character="wukong">
+                    <div class="character-image">
+                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=300&h=400&fit=crop&crop=center" alt="斗战胜佛孙悟空">
+                    </div>
+                    <div class="character-info">
+                        <h3>孙悟空</h3>
+                        <p>齐天大圣</p>
+                    </div>
+                </div>
+                <div class="character-card" data-character="erlang">
+                    <div class="character-image">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop&crop=center" alt="显圣真君二郎神">
+                    </div>
+                    <div class="character-info">
+                        <h3>二郎神</h3>
+                        <p>显圣真君</p>
+                    </div>
+                </div>
+                <div class="character-card" data-character="nezha">
+                    <div class="character-image">
+                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=400&fit=crop&crop=center" alt="三坛海会大神哪吒">
+                    </div>
+                    <div class="character-info">
+                        <h3>哪吒</h3>
+                        <p>三太子</p>
+                    </div>
+                </div>
+                <div class="character-card" data-character="buddha">
+                    <div class="character-image">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop&crop=center" alt="西方极乐如来佛祖">
+                    </div>
+                    <div class="character-info">
+                        <h3>如来佛祖</h3>
+                        <p>西方教主</p>
+                    </div>
+                </div>
+            </div>
+            <div class="character-details">
+                <div class="character-detail active" id="wukong-detail">
+                    <h3>孙悟空 - 齐天大圣</h3>
+                    <p>花果山水帘洞美猴王，拥有七十二变和筋斗云的神通。手持如意金箍棒，曾大闹天宫，后被如来佛祖压在五行山下五百年。</p>
+                </div>
+                <div class="character-detail" id="erlang-detail">
+                    <h3>二郎神 - 显圣真君</h3>
+                    <p>玉皇大帝的外甥，拥有三只眼和八九玄功。手持三尖两刃刀，座下有哮天犬，是天庭中的战神。</p>
+                </div>
+                <div class="character-detail" id="nezha-detail">
+                    <h3>哪吒 - 三太子</h3>
+                    <p>托塔李天王之子，拥有三头六臂的神通。手持混天绫和乾坤圈，脚踏风火轮，是天庭中的少年英雄。</p>
+                </div>
+                <div class="character-detail" id="buddha-detail">
+                    <h3>如来佛祖 - 西方教主</h3>
+                    <p>西方极乐世界的教主，拥有无边法力。曾将孙悟空压在五行山下，是佛教中的至高存在。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 玩法介绍 -->
+    <section class="gameplay" id="gameplay">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">游戏玩法</h2>
+                <p class="section-subtitle">体验前所未有的动作冒险</p>
+            </div>
+            <div class="gameplay-features">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=80&h=80&fit=crop&crop=center" alt="如意金箍棒武艺">
+                    </div>
+                    <h3>流畅战斗</h3>
+                    <p>运用七十二变和各种神通，体验爽快淋漓的战斗快感</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=80&h=80&fit=crop&crop=center" alt="水帘洞探险">
+                    </div>
+                    <h3>自由探索</h3>
+                    <p>在广阔的神话世界中自由探索，发现隐藏的秘密和宝藏</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=80&h=80&fit=crop&crop=center" alt="取经之路剧情">
+                    </div>
+                    <h3>深度剧情</h3>
+                    <p>体验扣人心弦的故事情节，做出影响命运的重要选择</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=80&h=80&fit=crop&crop=center" alt="神通广大法术">
+                    </div>
+                    <h3>神通法术</h3>
+                    <p>学习和掌握各种强大的神通法术，成为真正的斗战胜佛</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 媒体画廊 -->
+    <section class="media" id="media">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">媒体画廊</h2>
+                <p class="section-subtitle">欣赏游戏的精美画面和动人音乐</p>
+            </div>
+            <div class="media-tabs">
+                <button class="media-tab active" data-tab="screenshots">游戏截图</button>
+                <button class="media-tab" data-tab="videos">游戏视频</button>
+                <button class="media-tab" data-tab="concept">概念艺术</button>
+            </div>
+            <div class="media-content">
+                <div class="media-panel active" id="screenshots">
+                    <div class="media-grid">
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=300&fit=crop&crop=center" alt="齐天大圣威震天宫">
+                        </div>
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop&crop=center" alt="花果山仙境美景">
+                        </div>
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&crop=center" alt="西行取经征途">
+                        </div>
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=300&fit=crop&crop=center" alt="定海神针威力">
+                        </div>
+                    </div>
+                </div>
+                <div class="media-panel" id="videos">
+                    <div class="video-grid">
+                        <div class="video-item">
+                            <video controls>
+                                <source src="videos/trailer1.mp4" type="video/mp4">
+                            </video>
+                            <h4>官方预告片</h4>
+                        </div>
+                        <div class="video-item">
+                            <video controls>
+                                <source src="videos/gameplay1.mp4" type="video/mp4">
+                            </video>
+                            <h4>游戏演示</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="media-panel" id="concept">
+                    <div class="media-grid">
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop&crop=center" alt="美猴王角色设计">
+                        </div>
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=300&fit=crop&crop=center" alt="水帘洞场景概念">
+                        </div>
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&crop=center" alt="西游记世界观">
+                        </div>
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop&crop=center" alt="如意棒武器设计">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 新闻资讯 -->
+    <section class="news" id="news">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">最新资讯</h2>
+                <p class="section-subtitle">获取游戏的最新动态和更新</p>
+            </div>
+            <div class="news-grid">
+                <article class="news-card featured">
+                    <div class="news-image">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=250&fit=crop&crop=center" alt="斗战胜佛游戏展示">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="news-date">2024年7月15日</span>
+                            <span class="news-category">游戏更新</span>
+                        </div>
+                        <h3>《黑神话：悟空》发布最新游戏演示</h3>
+                        <p>全新的游戏演示展示了更多精彩的战斗场面和角色技能，让玩家对即将到来的正式版本充满期待。</p>
+                        <a href="#" class="read-more">阅读更多</a>
+                    </div>
+                </article>
+                <article class="news-card">
+                    <div class="news-image">
+                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=250&fit=crop&crop=center" alt="西游角色创作理念">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="news-date">2024年7月10日</span>
+                            <span class="news-category">开发日志</span>
+                        </div>
+                        <h3>开发团队分享角色设计理念</h3>
+                        <p>了解开发团队如何将经典的西游记角色重新诠释，融入现代游戏设计理念。</p>
+                        <a href="#" class="read-more">阅读更多</a>
+                    </div>
+                </article>
+                <article class="news-card">
+                    <div class="news-image">
+                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop&crop=center" alt="游戏系统需求">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="news-date">2024年7月5日</span>
+                            <span class="news-category">系统需求</span>
+                        </div>
+                        <h3>PC版系统配置要求公布</h3>
+                        <p>官方公布了PC版的最低和推荐系统配置要求，确保玩家能够获得最佳游戏体验。</p>
+                        <a href="#" class="read-more">阅读更多</a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=100&fit=crop&crop=center" alt="美猴王孙悟空">
+                    </div>
+                    <p>踏上西游之路，重燃斗战胜佛之魂</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=30&h=30&fit=crop&crop=center" alt="官方微博">
+                        </a>
+                        <a href="#" class="social-link">
+                            <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=30&h=30&fit=crop&crop=center" alt="哔哩哔哩官方">
+                        </a>
+                        <a href="#" class="social-link">
+                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=30&h=30&fit=crop&crop=center" alt="官方抖音">
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>游戏信息</h4>
+                    <ul>
+                        <li><a href="#">系统需求</a></li>
+                        <li><a href="#">购买指南</a></li>
+                        <li><a href="#">常见问题</a></li>
+                        <li><a href="#">技术支持</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>开发团队</h4>
+                    <ul>
+                        <li><a href="#">关于我们</a></li>
+                        <li><a href="#">招聘信息</a></li>
+                        <li><a href="#">联系我们</a></li>
+                        <li><a href="#">媒体资源</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>法律信息</h4>
+                    <ul>
+                        <li><a href="#">隐私政策</a></li>
+                        <li><a href="#">服务条款</a></li>
+                        <li><a href="#">版权声明</a></li>
+                        <li><a href="#">免责声明</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Game Science. 保留所有权利。</p>
+                <p>《黑神话：悟空》是 Game Science 的注册商标。</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
